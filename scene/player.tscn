@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dsip1rgvfy5ts"]
 
 [ext_resource type="Script" uid="uid://bw0dsmikt7p1e" path="res://script/player.gd" id="1_xo3ru"]
+[ext_resource type="Script" uid="uid://b5adeda5xysas" path="res://script/camera.gd" id="2_hjaqi"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_d78xx"]
 
@@ -21,3 +22,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47143447, 0)
 [node name="VHead" type="Node3D" parent="Head" unique_id=961613019]
 
 [node name="Camera" type="Camera3D" parent="Head/VHead" unique_id=363091571]
+script = ExtResource("2_hjaqi")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1465648275]
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer" unique_id=1836696238]
+custom_maximum_size = Vector2(4, 4)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
