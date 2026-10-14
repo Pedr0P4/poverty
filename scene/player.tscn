@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bw0dsmikt7p1e" path="res://script/player.gd" id="1_xo3ru"]
 [ext_resource type="Script" uid="uid://b5adeda5xysas" path="res://script/camera.gd" id="2_hjaqi"]
+[ext_resource type="PackedScene" uid="uid://cntx413cvd5lv" path="res://scene/rifle.tscn" id="3_fvtld"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_d78xx"]
 
@@ -23,6 +24,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47143447, 0)
 
 [node name="Camera" type="Camera3D" parent="Head/VHead" unique_id=363091571]
 script = ExtResource("2_hjaqi")
+
+[node name="Rifle" parent="." unique_id=2048976162 instance=ExtResource("3_fvtld")]
+transform = Transform3D(0.30942747, 0, 0, 0, 0.28587717, 0, 0, 0, 1, -0.38549113, 0.029265106, -0.48681056)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1465648275]
 

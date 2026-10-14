@@ -2,7 +2,7 @@ extends Camera3D
 
 const MAX_RANGE: float = 2000.0
 
-@onready var camera: Camera3D = $"."
+@onready var weapon: Weapon = $"../../../Rifle";
 
 @export var bullet_decal: PackedScene = preload("res://scene/decal.tscn")
 
@@ -15,24 +15,26 @@ func shoot() -> void:
 	var space_state := get_world_3d().direct_space_state
 	var center_screen := get_viewport().get_visible_rect().size / 2
 	
-	var origin := camera.project_ray_origin(center_screen)
-	var end := origin + (camera.project_ray_normal(center_screen) * MAX_RANGE)
+	var origin := project_ray_origin(center_screen)
+	var end := origin + (project_ray_normal(center_screen) * MAX_RANGE)
 	
 	var query := PhysicsRayQueryParameters3D.create(origin, end)
-	query.exclude = [self]
 	query.collision_mask = 1
 	
 	var result := space_state.intersect_ray(query)
+	var weapon_target := end
 	if result:
-		var target = result.collider
-		var point: Vector3 = result.position
-		var normal: Vector3 = result.normal
+		weapon_target = result.position
+	if weapon:
+		var weapon_begin = weapon.begin.global_position
 		
-		DecalGlobal.apply_decal(point, normal, target)
+		var weapon_query := PhysicsRayQueryParameters3D.create(weapon_begin, weapon_target)
+		weapon_query.collision_mask = 1
 		
-		if target.has_method("hit"):
-			target.hit();
-		else:
-			print("Bati em algo sem hit")
-	else:
-		print("Nada")
+		var weapon_result := space_state.intersect_ray(weapon_query)
+		if weapon_result:
+			var weapon_collider = weapon_result.collider
+			var weapon_point = weapon_result.position
+			var weapon_normal = weapon_result.normal
+			
+			DecalGlobal.apply_decal(weapon_point, weapon_normal, weapon_collider)

@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cntx413cvd5lv"]
+
+[ext_resource type="Script" uid="uid://cwo03m61fp5r" path="res://script/rifle.gd" id="1_000o2"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_d78xx"]
+
+[node name="Rifle" type="MeshInstance3D" unique_id=2048976162 node_paths=PackedStringArray("begin")]
+transform = Transform3D(0.30942747, 0, 0, 0, 0.28587717, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("BoxMesh_d78xx")
+script = ExtResource("1_000o2")
+begin = NodePath("Begin")
+
+[node name="Begin" type="Marker3D" parent="." unique_id=1485061305]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5014136)

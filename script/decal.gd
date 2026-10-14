@@ -25,5 +25,6 @@ func apply_decal(point: Vector3, normal: Vector3, target: Node3D) -> void:
 	decal.look_at(point + normal, up_dir)
 	decal.rotate_object_local(Vector3.RIGHT, rad_to_deg(90))
 	decal.visible = true
+	decal.scale = Vector3.ONE / 4
 	
 	curr_index = (curr_index + 1) % max_decals
