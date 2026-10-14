@@ -4,6 +4,8 @@ const MAX_RANGE: float = 2000.0
 
 @onready var camera: Camera3D = $"."
 
+@export var bullet_decal: PackedScene = preload("res://scene/decal.tscn")
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if Input.is_action_just_pressed("fire"):
@@ -23,6 +25,11 @@ func shoot() -> void:
 	var result := space_state.intersect_ray(query)
 	if result:
 		var target = result.collider
+		var point: Vector3 = result.position
+		var normal: Vector3 = result.normal
+		
+		DecalGlobal.apply_decal(point, normal, target)
+		
 		if target.has_method("hit"):
 			target.hit();
 		else:
