@@ -25,8 +25,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47143447, 0)
 [node name="Camera" type="Camera3D" parent="Head/VHead" unique_id=363091571]
 script = ExtResource("2_hjaqi")
 
-[node name="Rifle" parent="." unique_id=2048976162 instance=ExtResource("3_fvtld")]
-transform = Transform3D(0.30942747, 0, 0, 0, 0.28587717, 0, 0, 0, 1, -0.38549113, 0.029265106, -0.48681056)
+[node name="Rifle" parent="Head/VHead" unique_id=2048976162 instance=ExtResource("3_fvtld")]
+transform = Transform3D(0.30942747, 0, 0, 0, 0.28587717, 0, 0, 0, 1, -0.38549113, -0.44216937, -0.48681056)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1465648275]
 

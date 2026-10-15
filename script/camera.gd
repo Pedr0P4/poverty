@@ -2,7 +2,7 @@ extends Camera3D
 
 const MAX_RANGE: float = 2000.0
 
-@onready var weapon: Weapon = $"../../../Rifle";
+@onready var weapon: Weapon = $"../Rifle"
 
 @export var bullet_decal: PackedScene = preload("res://scene/decal.tscn")
 
