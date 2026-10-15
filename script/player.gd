@@ -1,3 +1,4 @@
+class_name Player
 extends CharacterBody3D
 
 @export_category("Player Settings")
@@ -14,8 +15,14 @@ extends CharacterBody3D
 
 var curr_speed: float;
 
+static var instance: Player = null
+static func get_instance() -> Player:
+	return instance
+
+
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	instance = self
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
