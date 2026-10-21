@@ -12,6 +12,9 @@ extends CharacterBody3D
 @export var mouse_sensitivity: float = 0.2
 
 @onready var vhead = $Head/VHead;
+@onready var rifle: Node3D = $Head/VHead/Rifle
+@onready var crosshair: Control = $CanvasLayer/ColorRect
+@onready var inventory_ui: InventoryUI = $CanvasLayer/InventoryUI
 
 var curr_speed: float;
 
@@ -23,15 +26,33 @@ static func get_instance() -> Player:
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	instance = self
+	if inventory_ui:
+		inventory_ui.equipped_item_changed.connect(_on_equipped_item_changed)
+		inventory_ui.inventory_toggled.connect(_on_inventory_toggled)
+		_on_equipped_item_changed(inventory_ui.get_selected_hotbar_item())
+
+func is_inventory_open() -> bool:
+	return inventory_ui != null and inventory_ui.is_open
+
+func _on_equipped_item_changed(item: ItemData) -> void:
+	if rifle:
+		rifle.visible = (item != null and item.is_rifle)
+
+func _on_inventory_toggled(open: bool) -> void:
+	if crosshair:
+		crosshair.visible = not open
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseMotion and not is_inventory_open() and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(deg_to_rad(-event.relative.x * mouse_sensitivity))
 		vhead.rotate_x(deg_to_rad(-event.relative.y * mouse_sensitivity))
 	
 	if event is InputEventKey:
 		if Input.is_action_just_pressed("ui_cancel"):
-			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+			if is_inventory_open():
+				inventory_ui.toggle_inventory()
+			else:
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():

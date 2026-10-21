@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://02aawbrdlkax"]
 
 [ext_resource type="Texture2D" uid="uid://c8i5tqb661s8i" path="res://icon.svg" id="1_pjass"]
+[ext_resource type="PackedScene" uid="uid://eftk8a7n5bri" path="res://scene/enemy.tscn" id="2_m5mgf"]
 [ext_resource type="PackedScene" uid="uid://dsip1rgvfy5ts" path="res://scene/player.tscn" id="2_txmk2"]
 [ext_resource type="PackedScene" uid="uid://d4edrm0g5jaig" path="res://scene/test_target.tscn" id="3_w4qq1"]
 
@@ -46,3 +47,6 @@ mesh = SubResource("BoxMesh_d78xx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D" unique_id=1705759255]
 shape = SubResource("ConcavePolygonShape3D_w4qq1")
+
+[node name="Enemy" parent="." unique_id=949170093 instance=ExtResource("2_m5mgf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3525662, 1, -4.770175)

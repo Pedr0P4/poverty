@@ -8,6 +8,13 @@ const MAX_RANGE: float = 2000.0
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
+		var player := Player.get_instance()
+		if player and player.is_inventory_open():
+			return
+		if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
+			return
+		if weapon and not weapon.visible:
+			return
 		if Input.is_action_just_pressed("fire"):
 			shoot()
 
