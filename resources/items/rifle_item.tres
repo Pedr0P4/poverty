@@ -12,4 +12,7 @@ icon_modulate = Color(0.95, 0.55, 0.2, 1)
 can_stack = false
 max_stack = 1
 is_rifle = true
+is_ammo = false
+max_ammo = 30
+ammo_item_id = "ammo"
 equip_type = 1

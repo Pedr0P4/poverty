@@ -9,14 +9,15 @@ const MAX_RANGE: float = 2000.0
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var player := Player.get_instance()
-		if player and player.is_inventory_open():
+		if player == null or player.is_inventory_open():
 			return
 		if Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
 			return
-		if weapon and not weapon.visible:
+		if weapon == null or not weapon.visible or weapon.is_reloading:
 			return
 		if Input.is_action_just_pressed("fire"):
-			shoot()
+			if player.inventory_ui and player.inventory_ui.consume_active_weapon_ammo(1):
+				shoot()
 
 func shoot() -> void:
 	var space_state := get_world_3d().direct_space_state
@@ -33,15 +34,19 @@ func shoot() -> void:
 	if result:
 		weapon_target = result.position
 	if weapon:
-		var weapon_begin = weapon.begin.global_position
+		var weapon_begin := weapon.begin.global_position
 		
 		var weapon_query := PhysicsRayQueryParameters3D.create(weapon_begin, weapon_target)
 		weapon_query.collision_mask = 1
 		
 		var weapon_result := space_state.intersect_ray(weapon_query)
+		var trail_end := weapon_target
 		if weapon_result:
 			var weapon_collider = weapon_result.collider
-			var weapon_point = weapon_result.position
-			var weapon_normal = weapon_result.normal
+			var weapon_point: Vector3 = weapon_result.position
+			var weapon_normal: Vector3 = weapon_result.normal
+			trail_end = weapon_point
 			
 			DecalGlobal.apply_decal(weapon_point, weapon_normal, weapon_collider)
+		
+		weapon.spawn_bullet_trail(weapon_begin, trail_end)

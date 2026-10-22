@@ -77,9 +77,17 @@ var _hud_weapon_separator: VSeparator = null
 var _is_dragging_left: bool = false
 var _drag_source_index: int = -1
 var _drag_source_container: int = InventorySlotUI.ContainerType.INVENTORY
+var _is_weapon_reloading: bool = false
 
 @onready var hud_hotbar_panel: PanelContainer = $HUDHotbarPanel
 @onready var hud_hotbar_grid: HBoxContainer = $HUDHotbarPanel/MarginContainer/HUDHotbarGrid
+@onready var hud_ammo_panel: PanelContainer = $HUDAmmoPanel
+@onready var weapon_ammo_label: Label = $HUDAmmoPanel/MarginContainer/VBoxContainer/WeaponAmmoLabel
+@onready var inventory_ammo_label: Label = $HUDAmmoPanel/MarginContainer/VBoxContainer/InventoryAmmoLabel
+@onready var ammo_status_label: Label = $HUDAmmoPanel/MarginContainer/VBoxContainer/AmmoStatusLabel
+@onready var reload_indicator: VBoxContainer = $ReloadIndicator
+@onready var reload_label: Label = $ReloadIndicator/ReloadLabel
+@onready var reload_progress_bar: ProgressBar = $ReloadIndicator/ReloadProgressBar
 @onready var equipment_modal: PanelContainer = $EquipmentModal
 @onready var weapons_slot_box: VBoxContainer = $EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/WeaponsColumn/WeaponsSlotBox
 @onready var head_slot_box: HBoxContainer = $EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/ClothesColumn/HeadSlotBox
@@ -203,22 +211,23 @@ func _build_ui_slots() -> void:
 
 
 func _populate_starter_items() -> void:
-	# Hotbar inicial: Munição no slot 0
-	hotbar_slots[0].set_data(ITEM_AMMO, 12)
+	# Hotbar inicial: Munição cheia (30 balas) no slot 0
+	hotbar_slots[0].set_data(ITEM_AMMO, 1, 30)
 
-	# Itens no inventário para testar equipamentos, armas e empilhamento
-	inventory_slots[0].set_data(ITEM_RIFLE, 1)
-	inventory_slots[1].set_data(ITEM_RIFLE, 1)
+	# Itens no inventário para testar equipamentos, armas (começam com 0 balas) e munições
+	inventory_slots[0].set_data(ITEM_RIFLE, 1, 0)
+	inventory_slots[1].set_data(ITEM_RIFLE, 1, 0)
 	inventory_slots[2].set_data(ITEM_HAT, 1)
 	inventory_slots[3].set_data(ITEM_SHIRT, 1)
 	inventory_slots[4].set_data(ITEM_JACKET, 1)
 	inventory_slots[5].set_data(ITEM_PANTS, 1)
 	inventory_slots[6].set_data(ITEM_SHOES, 1)
 	inventory_slots[7].set_data(ITEM_BAG, 1)
-	inventory_slots[8].set_data(ITEM_AMMO, 15)
+	inventory_slots[8].set_data(ITEM_AMMO, 1, 30)
 	inventory_slots[9].set_data(ITEM_MEDKIT, 6)
 	inventory_slots[10].set_data(ITEM_MEDKIT, 18)
 	inventory_slots[11].set_data(ITEM_KEY, 1)
+	inventory_slots[12].set_data(ITEM_AMMO, 1, 15)
 
 
 func toggle_inventory() -> void:
@@ -232,6 +241,10 @@ func _set_open_state(open: bool) -> void:
 
 	# Quando o inventário abre, a hotbar inferior desaparece e abrem o modal do inventário e o painel de equipamentos à esquerda
 	hud_hotbar_panel.visible = not is_open
+	if hud_ammo_panel:
+		hud_ammo_panel.visible = not is_open
+	if is_open and reload_indicator:
+		reload_indicator.visible = false
 	inventory_modal.visible = is_open
 	equipment_modal.visible = is_open
 
@@ -268,13 +281,108 @@ func _change_hotbar_focus(step: int) -> void:
 
 func get_selected_hotbar_item() -> ItemData:
 	# A arma só aparece na mão caso esteja equipada no slot de arma e seu slot correspondente na hotbar esteja selecionado
+	var weapon_slot := get_selected_weapon_slot()
+	return weapon_slot.item if weapon_slot != null else null
+
+
+func get_selected_weapon_slot() -> InventorySlotData:
 	if selected_hotbar_index == HOTBAR_WEAPON_1_INDEX:
 		var w1 := equipment_slots[EquipSlot.WEAPON_1]
-		return w1.item if not w1.is_empty() else null
+		return w1 if not w1.is_empty() else null
 	elif selected_hotbar_index == HOTBAR_WEAPON_2_INDEX:
 		var w2 := equipment_slots[EquipSlot.WEAPON_2]
-		return w2.item if not w2.is_empty() else null
+		return w2 if not w2.is_empty() else null
 	return null
+
+
+func get_total_ammo_for_item(ammo_id: String = "ammo") -> int:
+	var total: int = 0
+	for slot in inventory_slots:
+		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id:
+			total += slot.ammo
+	for slot in hotbar_slots:
+		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id:
+			total += slot.ammo
+	return total
+
+
+func find_best_ammo_slot(ammo_id: String = "ammo") -> InventorySlotData:
+	var best_slot: InventorySlotData = null
+	var best_ammo: int = 0
+
+	for slot in inventory_slots:
+		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id and slot.ammo > best_ammo:
+			best_ammo = slot.ammo
+			best_slot = slot
+
+	for slot in hotbar_slots:
+		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id and slot.ammo > best_ammo:
+			best_ammo = slot.ammo
+			best_slot = slot
+
+	return best_slot
+
+
+func can_reload_active_weapon() -> bool:
+	var weapon_slot := get_selected_weapon_slot()
+	if weapon_slot == null or weapon_slot.is_empty():
+		return false
+	if weapon_slot.ammo >= weapon_slot.item.max_ammo:
+		return false
+	var ammo_id := weapon_slot.item.ammo_item_id
+	if ammo_id.is_empty():
+		return false
+	return find_best_ammo_slot(ammo_id) != null
+
+
+func consume_active_weapon_ammo(amount: int = 1) -> bool:
+	var weapon_slot := get_selected_weapon_slot()
+	if weapon_slot == null or weapon_slot.is_empty():
+		return false
+	if weapon_slot.ammo < amount:
+		return false
+	weapon_slot.ammo -= amount
+	_refresh_all_ui()
+	return true
+
+
+func reload_active_weapon() -> bool:
+	var weapon_slot := get_selected_weapon_slot()
+	if weapon_slot == null or weapon_slot.is_empty():
+		return false
+	if weapon_slot.ammo >= weapon_slot.item.max_ammo:
+		return false
+
+	var best_ammo_slot := find_best_ammo_slot(weapon_slot.item.ammo_item_id)
+	if best_ammo_slot == null:
+		return false
+
+	var old_ammo: int = weapon_slot.ammo
+	var new_ammo: int = best_ammo_slot.ammo
+	var ammo_item: ItemData = best_ammo_slot.item
+
+	weapon_slot.ammo = new_ammo
+	if old_ammo > 0:
+		# Armazena a munição com balas a menos no inventário (no lugar da munição usada)
+		best_ammo_slot.set_data(ammo_item, 1, old_ammo)
+	else:
+		# Munição zerada é descartada
+		best_ammo_slot.clear()
+
+	_refresh_all_ui()
+	return true
+
+
+func set_reload_visual_state(reloading: bool, progress: float = 0.0, remaining_sec: float = 0.0) -> void:
+	_is_weapon_reloading = reloading
+	if reload_indicator:
+		reload_indicator.visible = reloading and not is_open
+	if reloading:
+		if reload_progress_bar:
+			reload_progress_bar.value = progress
+		if reload_label:
+			reload_label.text = "RECARREGANDO... %.1fs" % remaining_sec
+	_update_ammo_hud()
 
 
 func _get_slot_data(container_type: int, slot_index: int) -> InventorySlotData:
@@ -417,7 +525,7 @@ func _handle_right_click(target_slot: InventorySlotData, slot_index: int, contai
 
 	if not target_slot.is_empty():
 		if held_slot.is_empty():
-			held_slot.set_data(target_slot.item, 1)
+			held_slot.set_data(target_slot.item, 1, target_slot.ammo)
 			target_slot.quantity -= 1
 			if target_slot.quantity <= 0:
 				target_slot.clear()
@@ -431,7 +539,7 @@ func _handle_right_click(target_slot: InventorySlotData, slot_index: int, contai
 	elif not held_slot.is_empty():
 		if not _can_accept_item(held_slot.item, container_type, slot_index):
 			return
-		target_slot.set_data(held_slot.item, 1)
+		target_slot.set_data(held_slot.item, 1, held_slot.ammo)
 		held_slot.quantity -= 1
 		if held_slot.quantity <= 0:
 			held_slot.clear()
@@ -452,7 +560,7 @@ func _handle_shift_click(source_slot: InventorySlotData, from_container: int) ->
 	if source_slot.item.equip_type != ItemData.EquipType.NONE:
 		for i in range(EQUIP_SIZE):
 			if EQUIP_SLOT_TYPES[i] == source_slot.item.equip_type and equipment_slots[i].is_empty():
-				equipment_slots[i].set_data(source_slot.item, 1)
+				equipment_slots[i].set_data(source_slot.item, 1, source_slot.ammo)
 				source_slot.quantity -= 1
 				if source_slot.quantity <= 0:
 					source_slot.clear()
@@ -487,7 +595,7 @@ func _transfer_slot_to_array(source_slot: InventorySlotData, destination_array: 
 		if dest_slot.is_empty():
 			var max_s := source_slot.item.get_effective_max_stack()
 			var to_move := mini(max_s, source_slot.quantity)
-			dest_slot.set_data(source_slot.item, to_move)
+			dest_slot.set_data(source_slot.item, to_move, source_slot.ammo)
 			source_slot.quantity -= to_move
 			if source_slot.quantity <= 0:
 				source_slot.clear()
@@ -554,7 +662,10 @@ func _refresh_all_ui() -> void:
 		cursor_item.visible = true
 		cursor_icon.texture = held_slot.item.icon
 		cursor_icon.modulate = held_slot.item.icon_modulate
-		if held_slot.item.can_stack and held_slot.quantity > 1:
+		if held_slot.item.is_ammo or held_slot.item.equip_type == ItemData.EquipType.WEAPON:
+			cursor_quantity.text = "%d/%d" % [held_slot.ammo, held_slot.item.max_ammo]
+			cursor_quantity.visible = true
+		elif held_slot.item.can_stack and held_slot.quantity > 1:
 			cursor_quantity.text = str(held_slot.quantity)
 			cursor_quantity.visible = true
 		else:
@@ -562,4 +673,46 @@ func _refresh_all_ui() -> void:
 			cursor_quantity.visible = false
 		cursor_item.global_position = get_global_mouse_position() - (cursor_item.size * 0.5)
 
+	_update_ammo_hud()
 	equipped_item_changed.emit(get_selected_hotbar_item())
+
+
+func _update_ammo_hud() -> void:
+	if not weapon_ammo_label or not inventory_ammo_label or not ammo_status_label:
+		return
+
+	var weapon_slot := get_selected_weapon_slot()
+	var ammo_id := "ammo"
+	if weapon_slot != null and not weapon_slot.is_empty() and not weapon_slot.item.ammo_item_id.is_empty():
+		ammo_id = weapon_slot.item.ammo_item_id
+
+	var total_inv_ammo := get_total_ammo_for_item(ammo_id)
+	inventory_ammo_label.text = "Inventário: %d" % total_inv_ammo
+
+	if weapon_slot != null and not weapon_slot.is_empty():
+		weapon_ammo_label.text = "Arma: %d / %d" % [weapon_slot.ammo, weapon_slot.item.max_ammo]
+		if weapon_slot.ammo <= 0:
+			weapon_ammo_label.add_theme_color_override("font_color", Color(1.0, 0.38, 0.38, 1.0))
+		else:
+			weapon_ammo_label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.98, 1.0))
+
+		if _is_weapon_reloading:
+			ammo_status_label.text = "RECARREGANDO..."
+			ammo_status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.25, 1.0))
+		elif weapon_slot.ammo < weapon_slot.item.max_ammo:
+			if total_inv_ammo > 0:
+				ammo_status_label.text = "[R] Recarregar"
+				ammo_status_label.add_theme_color_override("font_color", Color(0.75, 0.78, 0.85, 1.0))
+			elif weapon_slot.ammo == 0:
+				ammo_status_label.text = "Sem munição"
+				ammo_status_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.45, 1.0))
+			else:
+				ammo_status_label.text = ""
+		else:
+			ammo_status_label.text = "Carregada"
+			ammo_status_label.add_theme_color_override("font_color", Color(0.55, 0.88, 0.6, 1.0))
+	else:
+		weapon_ammo_label.text = "Arma: -- / --"
+		weapon_ammo_label.add_theme_color_override("font_color", Color(0.65, 0.68, 0.75, 1.0))
+		ammo_status_label.text = "Sem arma em mãos"
+		ammo_status_label.add_theme_color_override("font_color", Color(0.6, 0.63, 0.7, 1.0))

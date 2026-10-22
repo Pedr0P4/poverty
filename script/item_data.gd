@@ -18,6 +18,9 @@ enum EquipType {
 @export var can_stack: bool = true
 @export var max_stack: int = 20
 @export var is_rifle: bool = false
+@export var is_ammo: bool = false
+@export var max_ammo: int = 0
+@export var ammo_item_id: String = ""
 @export var equip_type: EquipType = EquipType.NONE
 
 

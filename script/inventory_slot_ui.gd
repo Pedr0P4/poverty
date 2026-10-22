@@ -87,7 +87,10 @@ func update_slot(data: InventorySlotData, focused: bool = false) -> void:
 		name_label.text = data.item.item_name
 		name_label.visible = true
 
-		if data.item.can_stack and data.quantity > 1:
+		if data.item.is_ammo or data.item.equip_type == ItemData.EquipType.WEAPON:
+			quantity_label.text = "%d/%d" % [data.ammo, data.item.max_ammo]
+			quantity_label.visible = true
+		elif data.item.can_stack and data.quantity > 1:
 			quantity_label.text = str(data.quantity)
 			quantity_label.visible = true
 		else:
