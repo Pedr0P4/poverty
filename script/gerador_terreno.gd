@@ -77,6 +77,9 @@ extends Node3D
 @export_group("Navegação")
 @export var navmesh: NavigationMesh
 @export var region_rid: RID
+@export var nav_source_geometry: NavigationMeshSourceGeometryData3D
+var callback_parsing: Callable = _on_parsing_done
+var callback_baking: Callable = _on_baking_done
 
 var noise_terreno: FastNoiseLite
 var noise_civilizacao: FastNoiseLite
@@ -156,6 +159,7 @@ func _process(delta: float) -> void:
 		_atualizar_visibilidade_chunks(pos_jogador_xz, dir_visao)
 	
 	_processar_fila_geracao()
+	
 
 
 func _processar_timers_descarregamento(delta: float) -> void:
@@ -759,16 +763,21 @@ func _gerar_preview_editor() -> void:
 
 func _inicializar_navegacao() -> void:
 	navmesh = NavigationMesh.new()
-	navmesh.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
-	navmesh.geometry_source_group_name = 'terreno'
+	navmesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 	region_rid = NavigationServer3D.region_create()
+	nav_source_geometry = NavigationMeshSourceGeometryData3D.new()
+	
 	NavigationServer3D.region_set_enabled(region_rid,true)
 	NavigationServer3D.region_set_map(region_rid,get_world_3d().get_navigation_map())
 	
-	navmesh.vertices = PackedVector3Array(
-		[Vector3(-1.0, 0.0, 1.0),
-		Vector3(1.0, 0.0, 1.0),
-		Vector3(1.0, 0.0, -1.0),
-		Vector3(-1.0, 0.0, -1.0),])
-	navmesh.add_polygon(PackedInt32Array([0,1,2,3]))
-	NavigationServer3D.region_set_navigation_mesh(region_rid,navmesh)
+	_parse_source_geometry.call_deferred()
+func _parse_source_geometry() -> void:
+	nav_source_geometry.clear()
+	var root: Node3D = self
+	NavigationServer3D.parse_source_geometry_data(navmesh,nav_source_geometry, root, callback_parsing)
+	
+func _on_parsing_done() -> void:
+	NavigationServer3D.bake_from_source_geometry_data_async(navmesh,nav_source_geometry,callback_baking)
+	
+func _on_baking_done() -> void:
+	NavigationServer3D.region_set_navigation_mesh(region_rid, navmesh)
