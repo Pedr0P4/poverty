@@ -74,6 +74,9 @@ extends Node3D
 @export var posicionar_player_no_chao: bool = true
 @export var player: CharacterBody3D
 
+@export_group("Navegação")
+@export var navmesh: NavigationMesh
+@export var region_rid: RID
 
 var noise_terreno: FastNoiseLite
 var noise_civilizacao: FastNoiseLite
@@ -129,7 +132,7 @@ func _ready() -> void:
 	_ultima_pos_jogador_xz = pos_jogador_xz
 	_ultima_dir_visao = dir_visao
 	_atualizar_visibilidade_chunks(pos_jogador_xz, dir_visao)
-
+	_inicializar_navegacao()
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -751,3 +754,21 @@ func _gerar_preview_editor() -> void:
 	for dx in range(-1, 2):
 		for dz in range(-1, 2):
 			_gerar_chunk(Vector2i(dx, dz))
+
+#region Navigation
+
+func _inicializar_navegacao() -> void:
+	navmesh = NavigationMesh.new()
+	navmesh.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_GROUPS_WITH_CHILDREN
+	navmesh.geometry_source_group_name = 'terreno'
+	region_rid = NavigationServer3D.region_create()
+	NavigationServer3D.region_set_enabled(region_rid,true)
+	NavigationServer3D.region_set_map(region_rid,get_world_3d().get_navigation_map())
+	
+	navmesh.vertices = PackedVector3Array(
+		[Vector3(-1.0, 0.0, 1.0),
+		Vector3(1.0, 0.0, 1.0),
+		Vector3(1.0, 0.0, -1.0),
+		Vector3(-1.0, 0.0, -1.0),])
+	navmesh.add_polygon(PackedInt32Array([0,1,2,3]))
+	NavigationServer3D.region_set_navigation_mesh(region_rid,navmesh)

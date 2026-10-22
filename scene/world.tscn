@@ -5,6 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://dsip1rgvfy5ts" path="res://scene/player.tscn" id="2_txmk2"]
 [ext_resource type="PackedScene" uid="uid://d4edrm0g5jaig" path="res://scene/test_target.tscn" id="3_w4qq1"]
 
+[sub_resource type="NavigationMesh" id="NavigationMesh_d1gas"]
+vertices = PackedVector3Array(-29.767244, 0.5, -24.75665, -29.767244, 0.5, 24.74335, 29.732756, 0.5, 24.74335, 29.732756, 0.5, -24.75665)
+polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
+geometry_source_geometry_mode = 1
+geometry_source_group_name = &"terrain"
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_txmk2"]
 albedo_texture = ExtResource("1_pjass")
 
@@ -19,7 +25,10 @@ data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0
 
 [node name="World" type="Node3D" unique_id=322937012]
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=167885128]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=601117472]
+navigation_mesh = SubResource("NavigationMesh_d1gas")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=167885128 groups=["terrain"]]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=726829099]
 transform = Transform3D(30.267244, 0, 0, 0, 1, 0, 0, 0, 25.25665, 0, 0, 0)

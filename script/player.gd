@@ -52,7 +52,10 @@ func _input(event: InputEvent) -> void:
 			if is_inventory_open():
 				inventory_ui.toggle_inventory()
 			else:
-				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+				if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+					Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+				else:
+					Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
