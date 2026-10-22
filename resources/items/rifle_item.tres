@@ -12,3 +12,4 @@ icon_modulate = Color(0.95, 0.55, 0.2, 1)
 can_stack = false
 max_stack = 1
 is_rifle = true
+equip_type = 1
