@@ -30,6 +30,9 @@ enum AmmoCategory {
 @export var ammo_item_id: String = ""
 @export var ammo_category: AmmoCategory = AmmoCategory.NONE
 @export var equip_type: EquipType = EquipType.NONE
+@export var damage: float = 0.0
+@export var heal_amount: float = 0.0
+@export var use_time: float = 2.5
 
 
 func is_weapon() -> bool:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dsip1rgvfy5ts"]
+[gd_scene load_steps=13 format=3 uid="uid://dsip1rgvfy5ts"]
 
 [ext_resource type="Script" uid="uid://bw0dsmikt7p1e" path="res://script/player.gd" id="1_xo3ru"]
 [ext_resource type="Script" uid="uid://b5adeda5xysas" path="res://script/camera.gd" id="2_hjaqi"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://scene/shotgun.tscn" id="7_shotgun"]
 [ext_resource type="PackedScene" path="res://scene/sniper.tscn" id="8_sniper"]
 [ext_resource type="PackedScene" path="res://scene/lmg.tscn" id="9_lmg"]
+[ext_resource type="PackedScene" path="res://scene/medkit.tscn" id="10_medkit"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_d78xx"]
 
@@ -55,7 +56,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.34, -0.32, -0.52)
 visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36, -0.35, -0.50)
 
+[node name="Medkit" parent="Head/VHead" instance=ExtResource("10_medkit")]
+visible = false
+transform = Transform3D(0.9396926, 0, -0.34202015, 0, 1, 0, 0.34202015, 0, 0.9396926, -0.26, -0.25, -0.44)
+
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1465648275]
+
+[node name="DamageOverlay" type="ColorRect" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.85, 0.04, 0.04, 0)
 
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer" unique_id=1836696238]
 custom_maximum_size = Vector2(4, 4)

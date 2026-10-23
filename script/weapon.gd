@@ -3,6 +3,10 @@ extends Node3D
 
 signal reload_state_changed(reloading: bool, progress: float, remaining_sec: float)
 
+const AMMO_SMALL_RES: ItemData = preload("res://resources/items/ammo_small_item.tres")
+const AMMO_MEDIUM_RES: ItemData = preload("res://resources/items/ammo_medium_item.tres")
+const AMMO_LARGE_RES: ItemData = preload("res://resources/items/ammo_large_item.tres")
+
 @export_category("Identificação")
 @export var weapon_id: String = "rifle"
 @export var weapon_title: String = "Rifle"
@@ -14,6 +18,7 @@ signal reload_state_changed(reloading: bool, progress: float, remaining_sec: flo
 @export var fire_rate: float = 0.12
 @export var reload_time: float = 1.5
 @export var projectiles_per_shot: int = 1
+@export var damage_multiplier: float = 1.0
 @export var max_range: float = 2000.0
 
 @export_category("Spray e Recuo")
@@ -328,6 +333,21 @@ func try_fire_shot(camera: Camera3D, player: Player) -> bool:
 	return true
 
 
+func get_ammo_base_damage() -> float:
+	match ammo_category:
+		ItemData.AmmoCategory.SMALL:
+			return AMMO_SMALL_RES.damage if AMMO_SMALL_RES != null and AMMO_SMALL_RES.damage > 0.0 else 15.0
+		ItemData.AmmoCategory.MEDIUM:
+			return AMMO_MEDIUM_RES.damage if AMMO_MEDIUM_RES != null and AMMO_MEDIUM_RES.damage > 0.0 else 25.0
+		ItemData.AmmoCategory.LARGE:
+			return AMMO_LARGE_RES.damage if AMMO_LARGE_RES != null and AMMO_LARGE_RES.damage > 0.0 else 45.0
+	return 20.0
+
+
+func get_projectile_damage() -> float:
+	return get_ammo_base_damage() * damage_multiplier
+
+
 func get_current_fire_interval() -> float:
 	return fire_rate
 
@@ -439,9 +459,15 @@ func _fire_raycast_projectile(camera: Camera3D, player: Player, spread_deg: floa
 		trail_end = weapon_point
 
 		if weapon_collider != null:
-			DecalGlobal.apply_decal(weapon_point, weapon_normal, weapon_collider)
-			if weapon_collider.has_method("hit"):
-				weapon_collider.hit()
+			var shot_damage := get_projectile_damage()
+			if weapon_collider is Enemy:
+				(weapon_collider as Enemy).hit(shot_damage, weapon_point, weapon_normal, to_target_dir)
+				spawn_impact_effect(weapon_point, weapon_normal, true)
+			else:
+				DecalGlobal.apply_decal(weapon_point, weapon_normal, weapon_collider)
+				spawn_impact_effect(weapon_point, weapon_normal, false)
+				if weapon_collider.has_method("hit"):
+					weapon_collider.hit()
 
 	spawn_bullet_trail(weapon_begin, trail_end)
 
@@ -516,3 +542,68 @@ func spawn_bullet_trail(from_pos: Vector3, to_pos: Vector3) -> void:
 	var tween := trail_instance.create_tween()
 	tween.tween_property(mat, "albedo_color:a", 0.0, trail_duration)
 	tween.tween_callback(trail_instance.queue_free)
+
+
+func spawn_impact_effect(hit_pos: Vector3, hit_normal: Vector3, is_enemy_hit: bool) -> void:
+	var scene_root := get_tree().current_scene
+	if scene_root == null:
+		return
+
+	var normal := hit_normal.normalized() if hit_normal.length_squared() > 0.001 else Vector3.UP
+	var impact_root := Node3D.new()
+	scene_root.add_child(impact_root)
+	impact_root.global_position = hit_pos + normal * 0.02
+
+	# Flash central do impacto
+	var flash_mesh := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	var flash_radius := 0.09 if is_enemy_hit else 0.05
+	sphere.radius = flash_radius
+	sphere.height = flash_radius * 2.0
+	flash_mesh.mesh = sphere
+	flash_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+	var flash_mat := StandardMaterial3D.new()
+	flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	flash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	flash_mat.albedo_color = Color(1.0, 0.18, 0.15, 0.9) if is_enemy_hit else Color(1.0, 0.85, 0.35, 0.85)
+	flash_mesh.material_override = flash_mat
+	impact_root.add_child(flash_mesh)
+
+	# Fragmentos/partículas saltando do ponto de impacto
+	var count := 6 if is_enemy_hit else 4
+	for i in range(count):
+		var frag := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		var s := randf_range(0.025, 0.05) if is_enemy_hit else randf_range(0.015, 0.03)
+		box.size = Vector3(s, s, s)
+		frag.mesh = box
+		frag.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+		var frag_mat := StandardMaterial3D.new()
+		frag_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		frag_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		if is_enemy_hit:
+			frag_mat.albedo_color = Color(randf_range(0.75, 1.0), randf_range(0.05, 0.22), randf_range(0.05, 0.15), 0.95)
+		else:
+			frag_mat.albedo_color = Color(1.0, randf_range(0.65, 0.92), randf_range(0.2, 0.45), 0.9)
+		frag.material_override = frag_mat
+		impact_root.add_child(frag)
+
+		var rand_vec := Vector3(randf_range(-1.0, 1.0), randf_range(-0.4, 1.0), randf_range(-1.0, 1.0)).normalized()
+		var burst_dir := (normal * 1.3 + rand_vec * 0.9).normalized()
+		var burst_dist := randf_range(0.18, 0.45) if is_enemy_hit else randf_range(0.12, 0.3)
+		var end_offset := burst_dir * burst_dist + Vector3(0.0, -0.12, 0.0)
+
+		var frag_tween := frag.create_tween()
+		frag_tween.set_parallel(true)
+		frag_tween.tween_property(frag, "position", end_offset, 0.24).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		frag_tween.tween_property(frag, "scale", Vector3.ONE * 0.2, 0.24)
+		frag_tween.tween_property(frag_mat, "albedo_color:a", 0.0, 0.24)
+
+	var root_tween := impact_root.create_tween()
+	root_tween.set_parallel(true)
+	root_tween.tween_property(flash_mesh, "scale", Vector3.ONE * 2.2, 0.16)
+	root_tween.tween_property(flash_mat, "albedo_color:a", 0.0, 0.16)
+	root_tween.chain().tween_interval(0.12)
+	root_tween.chain().tween_callback(impact_root.queue_free)

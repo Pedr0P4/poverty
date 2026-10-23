@@ -15,3 +15,4 @@ is_rifle = false
 is_ammo = true
 max_ammo = 36
 ammo_category = 1
+damage = 15.0

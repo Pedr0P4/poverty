@@ -16,6 +16,7 @@ func _setup_weapon_stats() -> void:
 	fire_rate = 1.15
 	reload_time = 2.4
 	projectiles_per_shot = 1
+	damage_multiplier = 2.0
 	max_range = 3500.0
 
 	# Sem mirar (hip-fire) tem muita imprecisão; mirando com botão direito fica cirúrgica!

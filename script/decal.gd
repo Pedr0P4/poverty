@@ -14,7 +14,13 @@ func _ready() -> void:
 		decals_pool.append(decal)
 
 func apply_decal(point: Vector3, normal: Vector3, target: Node3D) -> void:
-	var decal = decals_pool[curr_index]	
+	if target == null or not is_instance_valid(target):
+		return
+	var decal: Decal = decals_pool[curr_index]
+	if not is_instance_valid(decal):
+		decal = decal_scene1.instantiate()
+		add_child(decal)
+		decals_pool[curr_index] = decal
 	decal.reparent(target)
 	
 	var up_dir = Vector3.UP

@@ -88,6 +88,10 @@ var _is_dragging_left: bool = false
 var _drag_source_index: int = -1
 var _drag_source_container: int = InventorySlotUI.ContainerType.INVENTORY
 var _is_weapon_reloading: bool = false
+var _is_using_medkit: bool = false
+
+var _style_reload_fill: StyleBoxFlat
+var _style_medkit_fill: StyleBoxFlat
 
 @onready var hud_hotbar_panel: PanelContainer = $HUDHotbarPanel
 @onready var hud_hotbar_grid: HBoxContainer = $HUDHotbarPanel/MarginContainer/HUDHotbarGrid
@@ -115,10 +119,21 @@ var _is_weapon_reloading: bool = false
 
 
 func _ready() -> void:
+	_setup_indicator_styles()
 	_init_data()
 	_build_ui_slots()
 	_populate_starter_items()
 	_set_open_state(false)
+
+
+func _setup_indicator_styles() -> void:
+	_style_reload_fill = StyleBoxFlat.new()
+	_style_reload_fill.bg_color = Color(0.95, 0.78, 0.22, 1.0)
+	_style_reload_fill.set_corner_radius_all(3)
+
+	_style_medkit_fill = StyleBoxFlat.new()
+	_style_medkit_fill.bg_color = Color(0.25, 0.9, 0.42, 1.0)
+	_style_medkit_fill.set_corner_radius_all(3)
 
 
 func _process(_delta: float) -> void:
@@ -308,7 +323,44 @@ func _change_hotbar_focus(step: int) -> void:
 func get_selected_hotbar_item() -> ItemData:
 	# A arma só aparece na mão caso esteja equipada no slot de arma e seu slot correspondente na hotbar esteja selecionado
 	var weapon_slot := get_selected_weapon_slot()
-	return weapon_slot.item if weapon_slot != null else null
+	if weapon_slot != null:
+		return weapon_slot.item
+	var normal_slot := get_selected_normal_hotbar_slot()
+	if normal_slot != null and not normal_slot.item.is_weapon():
+		return normal_slot.item
+	return null
+
+
+func get_selected_normal_hotbar_slot() -> InventorySlotData:
+	if selected_hotbar_index >= 0 and selected_hotbar_index < hotbar_slots.size():
+		var slot := hotbar_slots[selected_hotbar_index]
+		return slot if not slot.is_empty() else null
+	return null
+
+
+func has_selected_medkit() -> bool:
+	var slot := get_selected_normal_hotbar_slot()
+	return slot != null and not slot.is_empty() and slot.item.id == "medkit" and slot.quantity > 0
+
+
+func get_selected_medkit_item() -> ItemData:
+	var slot := get_selected_normal_hotbar_slot()
+	if slot != null and not slot.is_empty() and slot.item.id == "medkit":
+		return slot.item
+	return null
+
+
+func consume_selected_medkit(amount: int = 1) -> bool:
+	var slot := get_selected_normal_hotbar_slot()
+	if slot == null or slot.is_empty() or slot.item.id != "medkit":
+		return false
+	if slot.quantity < amount:
+		return false
+	slot.quantity -= amount
+	if slot.quantity <= 0:
+		slot.clear()
+	_refresh_all_ui()
+	return true
 
 
 func get_selected_weapon_slot() -> InventorySlotData:
@@ -407,12 +459,30 @@ func reload_active_weapon() -> bool:
 func set_reload_visual_state(reloading: bool, progress: float = 0.0, remaining_sec: float = 0.0) -> void:
 	_is_weapon_reloading = reloading
 	if reload_indicator:
-		reload_indicator.visible = reloading and not is_open
+		reload_indicator.visible = (reloading or _is_using_medkit) and not is_open
 	if reloading:
 		if reload_progress_bar:
+			if _style_reload_fill:
+				reload_progress_bar.add_theme_stylebox_override("fill", _style_reload_fill)
 			reload_progress_bar.value = progress
 		if reload_label:
 			reload_label.text = "RECARREGANDO... %.1fs" % remaining_sec
+			reload_label.add_theme_color_override("font_color", Color(1.0, 0.88, 0.3, 1.0))
+	_update_ammo_hud()
+
+
+func set_medkit_visual_state(using: bool, progress: float = 0.0, remaining_sec: float = 0.0) -> void:
+	_is_using_medkit = using
+	if reload_indicator:
+		reload_indicator.visible = (using or _is_weapon_reloading) and not is_open
+	if using:
+		if reload_progress_bar:
+			if _style_medkit_fill:
+				reload_progress_bar.add_theme_stylebox_override("fill", _style_medkit_fill)
+			reload_progress_bar.value = progress
+		if reload_label:
+			reload_label.text = "USANDO KIT MÉDICO... %.1fs" % remaining_sec
+			reload_label.add_theme_color_override("font_color", Color(0.35, 0.95, 0.48, 1.0))
 	_update_ammo_hud()
 
 
@@ -785,5 +855,17 @@ func _update_ammo_hud() -> void:
 		weapon_ammo_label.text = "Arma: -- / --"
 		weapon_ammo_label.add_theme_color_override("font_color", Color(0.65, 0.68, 0.75, 1.0))
 		inventory_ammo_label.text = "P:%d | M:%d | G:%d" % [s_total, m_total, l_total]
-		ammo_status_label.text = "Sem arma em mãos"
-		ammo_status_label.add_theme_color_override("font_color", Color(0.6, 0.63, 0.7, 1.0))
+		if has_selected_medkit():
+			var player := Player.get_instance()
+			if _is_using_medkit:
+				ammo_status_label.text = "Aplicando Kit Médico..."
+				ammo_status_label.add_theme_color_override("font_color", Color(0.35, 0.95, 0.48, 1.0))
+			elif player != null and player.health >= player.max_health:
+				ammo_status_label.text = "Kit Médico (Vida Cheia)"
+				ammo_status_label.add_theme_color_override("font_color", Color(0.65, 0.85, 0.7, 1.0))
+			else:
+				ammo_status_label.text = "[Segure Botão Esq]: Usar Kit Médico"
+				ammo_status_label.add_theme_color_override("font_color", Color(0.35, 0.95, 0.48, 1.0))
+		else:
+			ammo_status_label.text = "Sem arma em mãos"
+			ammo_status_label.add_theme_color_override("font_color", Color(0.6, 0.63, 0.7, 1.0))

@@ -10,11 +10,23 @@ material = SubResource("StandardMaterial3D_d1gas")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_d78xx"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_visor"]
+albedo_color = Color(0.12, 0.14, 0.18, 1)
+roughness = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_visor"]
+material = SubResource("StandardMaterial3D_visor")
+size = Vector3(0.52, 0.18, 0.25)
+
 [node name="Enemy" type="CharacterBody3D" unique_id=949170093]
 script = ExtResource("1_h08p8")
 
 [node name="Shape" type="MeshInstance3D" parent="." unique_id=544206042]
 mesh = SubResource("CapsuleMesh_d78xx")
+
+[node name="Visor" type="MeshInstance3D" parent="Shape"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, -0.4)
+mesh = SubResource("BoxMesh_visor")
 
 [node name="Collision" type="CollisionShape3D" parent="." unique_id=335002686]
 shape = SubResource("CapsuleShape3D_d78xx")

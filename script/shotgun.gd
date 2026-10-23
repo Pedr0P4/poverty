@@ -16,6 +16,7 @@ func _setup_weapon_stats() -> void:
 	reload_time = 2.0
 	# Peculiaridade: 8 balins disparados simultaneamente em cone!
 	projectiles_per_shot = 8
+	damage_multiplier = 0.32
 
 	base_spread_deg = 5.4
 	max_spread_deg = 9.0

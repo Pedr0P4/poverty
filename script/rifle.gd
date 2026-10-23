@@ -14,6 +14,7 @@ func _setup_weapon_stats() -> void:
 	fire_rate = 0.105
 	reload_time = 1.65
 	projectiles_per_shot = 1
+	damage_multiplier = 1.0
 
 	base_spread_deg = 0.35
 	max_spread_deg = 5.4
