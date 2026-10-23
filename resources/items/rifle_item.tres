@@ -14,5 +14,6 @@ max_stack = 1
 is_rifle = true
 is_ammo = false
 max_ammo = 30
-ammo_item_id = "ammo"
+ammo_item_id = "ammo_medium"
+ammo_category = 2
 equip_type = 1

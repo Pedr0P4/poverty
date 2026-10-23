@@ -1,0 +1,63 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://script/shotgun.gd" id="1_shotgun"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_Steel"]
+albedo_color = Color(0.20, 0.21, 0.24, 1)
+metallic = 0.75
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="Mat_Wood"]
+albedo_color = Color(0.62, 0.32, 0.14, 1)
+roughness = 0.65
+
+[sub_resource type="StandardMaterial3D" id="Mat_DarkBarrel"]
+albedo_color = Color(0.11, 0.12, 0.14, 1)
+metallic = 0.85
+roughness = 0.28
+
+[sub_resource type="BoxMesh" id="Mesh_Receiver"]
+material = SubResource("Mat_Steel")
+size = Vector3(0.115, 0.135, 0.38)
+
+[sub_resource type="BoxMesh" id="Mesh_TopBarrel"]
+material = SubResource("Mat_DarkBarrel")
+size = Vector3(0.055, 0.055, 0.68)
+
+[sub_resource type="BoxMesh" id="Mesh_TubeMag"]
+material = SubResource("Mat_Steel")
+size = Vector3(0.048, 0.048, 0.56)
+
+[sub_resource type="BoxMesh" id="Mesh_Pump"]
+material = SubResource("Mat_Wood")
+size = Vector3(0.095, 0.085, 0.24)
+
+[sub_resource type="BoxMesh" id="Mesh_WoodStock"]
+material = SubResource("Mat_Wood")
+size = Vector3(0.095, 0.14, 0.32)
+
+[node name="Shotgun" type="Node3D" node_paths=PackedStringArray("begin")]
+script = ExtResource("1_shotgun")
+begin = NodePath("Begin")
+
+[node name="Receiver" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_Receiver")
+
+[node name="TopBarrel" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.032, -0.48)
+mesh = SubResource("Mesh_TopBarrel")
+
+[node name="TubeMag" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.022, -0.42)
+mesh = SubResource("Mesh_TubeMag")
+
+[node name="PumpHandle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.028, -0.36)
+mesh = SubResource("Mesh_Pump")
+
+[node name="WoodStock" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.99254614, 0.12186934, 0, -0.12186934, 0.99254614, 0, -0.025, 0.31)
+mesh = SubResource("Mesh_WoodStock")
+
+[node name="Begin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.032, -0.84)

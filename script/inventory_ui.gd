@@ -49,7 +49,17 @@ const EQUIP_SLOT_PLACEHOLDERS: Array[String] = [
 const SLOT_SCENE: PackedScene = preload("res://scene/inventory_slot.tscn")
 
 const ITEM_RIFLE: ItemData = preload("res://resources/items/rifle_item.tres")
-const ITEM_AMMO: ItemData = preload("res://resources/items/ammo_item.tres")
+const ITEM_PISTOL: ItemData = preload("res://resources/items/pistol_item.tres")
+const ITEM_SMG: ItemData = preload("res://resources/items/smg_item.tres")
+const ITEM_SHOTGUN: ItemData = preload("res://resources/items/shotgun_item.tres")
+const ITEM_SNIPER: ItemData = preload("res://resources/items/sniper_item.tres")
+const ITEM_LMG: ItemData = preload("res://resources/items/lmg_item.tres")
+
+const ITEM_AMMO_SMALL: ItemData = preload("res://resources/items/ammo_small_item.tres")
+const ITEM_AMMO_MEDIUM: ItemData = preload("res://resources/items/ammo_medium_item.tres")
+const ITEM_AMMO_LARGE: ItemData = preload("res://resources/items/ammo_large_item.tres")
+const ITEM_AMMO: ItemData = preload("res://resources/items/ammo_medium_item.tres")
+
 const ITEM_MEDKIT: ItemData = preload("res://resources/items/medkit_item.tres")
 const ITEM_KEY: ItemData = preload("res://resources/items/key_item.tres")
 const ITEM_HAT: ItemData = preload("res://resources/items/hat_item.tres")
@@ -82,6 +92,7 @@ var _is_weapon_reloading: bool = false
 @onready var hud_hotbar_panel: PanelContainer = $HUDHotbarPanel
 @onready var hud_hotbar_grid: HBoxContainer = $HUDHotbarPanel/MarginContainer/HUDHotbarGrid
 @onready var hud_ammo_panel: PanelContainer = $HUDAmmoPanel
+@onready var ammo_title_label: Label = $HUDAmmoPanel/MarginContainer/VBoxContainer/TitleLabel
 @onready var weapon_ammo_label: Label = $HUDAmmoPanel/MarginContainer/VBoxContainer/WeaponAmmoLabel
 @onready var inventory_ammo_label: Label = $HUDAmmoPanel/MarginContainer/VBoxContainer/InventoryAmmoLabel
 @onready var ammo_status_label: Label = $HUDAmmoPanel/MarginContainer/VBoxContainer/AmmoStatusLabel
@@ -113,6 +124,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if cursor_item.visible:
 		cursor_item.global_position = get_global_mouse_position() - (cursor_item.size * 0.5)
+	if not is_open:
+		_update_ammo_hud()
 
 
 func _input(event: InputEvent) -> void:
@@ -211,23 +224,36 @@ func _build_ui_slots() -> void:
 
 
 func _populate_starter_items() -> void:
-	# Hotbar inicial: Munição cheia (30 balas) no slot 0
-	hotbar_slots[0].set_data(ITEM_AMMO, 1, 30)
+	# Hotbar inicial: 1 caixa de cada tipo de munição (Pequena, Média e Grande) + consumíveis
+	hotbar_slots[0].set_data(ITEM_AMMO_SMALL, 1, 36)
+	hotbar_slots[1].set_data(ITEM_AMMO_MEDIUM, 1, 45)
+	hotbar_slots[2].set_data(ITEM_AMMO_LARGE, 1, 60)
+	hotbar_slots[3].set_data(ITEM_MEDKIT, 6)
+	hotbar_slots[4].set_data(ITEM_KEY, 1)
 
-	# Itens no inventário para testar equipamentos, armas (começam com 0 balas) e munições
-	inventory_slots[0].set_data(ITEM_RIFLE, 1, 0)
-	inventory_slots[1].set_data(ITEM_RIFLE, 1, 0)
-	inventory_slots[2].set_data(ITEM_HAT, 1)
-	inventory_slots[3].set_data(ITEM_SHIRT, 1)
-	inventory_slots[4].set_data(ITEM_JACKET, 1)
-	inventory_slots[5].set_data(ITEM_PANTS, 1)
-	inventory_slots[6].set_data(ITEM_SHOES, 1)
-	inventory_slots[7].set_data(ITEM_BAG, 1)
-	inventory_slots[8].set_data(ITEM_AMMO, 1, 30)
-	inventory_slots[9].set_data(ITEM_MEDKIT, 6)
-	inventory_slots[10].set_data(ITEM_MEDKIT, 18)
-	inventory_slots[11].set_data(ITEM_KEY, 1)
-	inventory_slots[12].set_data(ITEM_AMMO, 1, 15)
+	# Linha 1 do Inventário (0..5): Todas as 6 armas (com munição parcial para já atirar ou testar recarga [R])
+	inventory_slots[0].set_data(ITEM_RIFLE, 1, 20)
+	inventory_slots[1].set_data(ITEM_PISTOL, 1, 10)
+	inventory_slots[2].set_data(ITEM_SMG, 1, 20)
+	inventory_slots[3].set_data(ITEM_SHOTGUN, 1, 5)
+	inventory_slots[4].set_data(ITEM_SNIPER, 1, 3)
+	inventory_slots[5].set_data(ITEM_LMG, 1, 45)
+
+	# Linha 2 do Inventário (6..11): Caixas extras dos 3 tipos de munição
+	inventory_slots[6].set_data(ITEM_AMMO_SMALL, 1, 36)
+	inventory_slots[7].set_data(ITEM_AMMO_SMALL, 1, 36)
+	inventory_slots[8].set_data(ITEM_AMMO_MEDIUM, 1, 45)
+	inventory_slots[9].set_data(ITEM_AMMO_MEDIUM, 1, 45)
+	inventory_slots[10].set_data(ITEM_AMMO_LARGE, 1, 60)
+	inventory_slots[11].set_data(ITEM_AMMO_LARGE, 1, 60)
+
+	# Linha 3 do Inventário (12..17): Roupas e Bolsa
+	inventory_slots[12].set_data(ITEM_HAT, 1)
+	inventory_slots[13].set_data(ITEM_SHIRT, 1)
+	inventory_slots[14].set_data(ITEM_JACKET, 1)
+	inventory_slots[15].set_data(ITEM_PANTS, 1)
+	inventory_slots[16].set_data(ITEM_SHOES, 1)
+	inventory_slots[17].set_data(ITEM_BAG, 1)
 
 
 func toggle_inventory() -> void:
@@ -295,7 +321,7 @@ func get_selected_weapon_slot() -> InventorySlotData:
 	return null
 
 
-func get_total_ammo_for_item(ammo_id: String = "ammo") -> int:
+func get_total_ammo_for_item(ammo_id: String = "ammo_medium") -> int:
 	var total: int = 0
 	for slot in inventory_slots:
 		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id:
@@ -306,17 +332,18 @@ func get_total_ammo_for_item(ammo_id: String = "ammo") -> int:
 	return total
 
 
-func find_best_ammo_slot(ammo_id: String = "ammo") -> InventorySlotData:
+func find_best_ammo_slot(ammo_id: String = "ammo_medium") -> InventorySlotData:
 	var best_slot: InventorySlotData = null
-	var best_ammo: int = 0
+	var best_ammo: int = 999999
 
+	# Prioriza consumir primeiro de caixas parciais do mesmo calibre para liberar espaço
 	for slot in inventory_slots:
-		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id and slot.ammo > best_ammo:
+		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id and slot.ammo > 0 and slot.ammo < best_ammo:
 			best_ammo = slot.ammo
 			best_slot = slot
 
 	for slot in hotbar_slots:
-		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id and slot.ammo > best_ammo:
+		if not slot.is_empty() and slot.item.is_ammo and slot.item.id == ammo_id and slot.ammo > 0 and slot.ammo < best_ammo:
 			best_ammo = slot.ammo
 			best_slot = slot
 
@@ -353,24 +380,28 @@ func reload_active_weapon() -> bool:
 	if weapon_slot.ammo >= weapon_slot.item.max_ammo:
 		return false
 
-	var best_ammo_slot := find_best_ammo_slot(weapon_slot.item.ammo_item_id)
-	if best_ammo_slot == null:
+	var ammo_id := weapon_slot.item.ammo_item_id
+	if ammo_id.is_empty():
 		return false
 
-	var old_ammo: int = weapon_slot.ammo
-	var new_ammo: int = best_ammo_slot.ammo
-	var ammo_item: ItemData = best_ammo_slot.item
+	var needed: int = weapon_slot.item.max_ammo - weapon_slot.ammo
+	var loaded_any := false
 
-	weapon_slot.ammo = new_ammo
-	if old_ammo > 0:
-		# Armazena a munição com balas a menos no inventário (no lugar da munição usada)
-		best_ammo_slot.set_data(ammo_item, 1, old_ammo)
-	else:
-		# Munição zerada é descartada
-		best_ammo_slot.clear()
+	while needed > 0:
+		var ammo_slot := find_best_ammo_slot(ammo_id)
+		if ammo_slot == null or ammo_slot.ammo <= 0:
+			break
+		var take := mini(needed, ammo_slot.ammo)
+		weapon_slot.ammo += take
+		ammo_slot.ammo -= take
+		needed -= take
+		loaded_any = true
+		if ammo_slot.ammo <= 0:
+			ammo_slot.clear()
 
-	_refresh_all_ui()
-	return true
+	if loaded_any:
+		_refresh_all_ui()
+	return loaded_any
 
 
 func set_reload_visual_state(reloading: bool, progress: float = 0.0, remaining_sec: float = 0.0) -> void:
@@ -496,6 +527,18 @@ func _place_or_swap_held_into_slot(target_slot: InventorySlotData) -> void:
 		target_slot.copy_from(held_slot)
 		held_slot.clear()
 		return
+
+	# Mesma caixa de munição parcial: junta as balas até o max_ammo da caixa
+	if target_slot.item == held_slot.item and held_slot.item.is_ammo:
+		var max_a := held_slot.item.max_ammo
+		var space_a := max_a - target_slot.ammo
+		if space_a > 0 and held_slot.ammo > 0:
+			var transfer_a := mini(space_a, held_slot.ammo)
+			target_slot.ammo += transfer_a
+			held_slot.ammo -= transfer_a
+			if held_slot.ammo <= 0:
+				held_slot.clear()
+			return
 
 	# Mesmo item e agrupável
 	if target_slot.item == held_slot.item and held_slot.item.can_stack:
@@ -677,42 +720,70 @@ func _refresh_all_ui() -> void:
 	equipped_item_changed.emit(get_selected_hotbar_item())
 
 
+func _get_ammo_label_for_id(ammo_id: String) -> String:
+	match ammo_id:
+		"ammo_small":
+			return "Mun. Pequena"
+		"ammo_medium":
+			return "Mun. Média"
+		"ammo_large":
+			return "Mun. Grande"
+	return "Munição"
+
+
 func _update_ammo_hud() -> void:
 	if not weapon_ammo_label or not inventory_ammo_label or not ammo_status_label:
 		return
 
 	var weapon_slot := get_selected_weapon_slot()
-	var ammo_id := "ammo"
-	if weapon_slot != null and not weapon_slot.is_empty() and not weapon_slot.item.ammo_item_id.is_empty():
-		ammo_id = weapon_slot.item.ammo_item_id
-
-	var total_inv_ammo := get_total_ammo_for_item(ammo_id)
-	inventory_ammo_label.text = "Inventário: %d" % total_inv_ammo
-
 	if weapon_slot != null and not weapon_slot.is_empty():
+		var ammo_id := weapon_slot.item.ammo_item_id
+		var ammo_type_name := _get_ammo_label_for_id(ammo_id)
+		var total_inv_ammo := get_total_ammo_for_item(ammo_id)
+
+		if ammo_title_label:
+			ammo_title_label.text = "%s (%s)" % [weapon_slot.item.item_name.to_upper(), ammo_type_name]
+		inventory_ammo_label.text = "%s: %d" % [ammo_type_name, total_inv_ammo]
 		weapon_ammo_label.text = "Arma: %d / %d" % [weapon_slot.ammo, weapon_slot.item.max_ammo]
+
 		if weapon_slot.ammo <= 0:
 			weapon_ammo_label.add_theme_color_override("font_color", Color(1.0, 0.38, 0.38, 1.0))
 		else:
 			weapon_ammo_label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.98, 1.0))
 
+		var player := Player.get_instance()
+		var hint := player.get_active_weapon_hint() if player != null else ""
+
 		if _is_weapon_reloading:
 			ammo_status_label.text = "RECARREGANDO..."
 			ammo_status_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.25, 1.0))
-		elif weapon_slot.ammo < weapon_slot.item.max_ammo:
+		elif weapon_slot.ammo == 0:
 			if total_inv_ammo > 0:
 				ammo_status_label.text = "[R] Recarregar"
-				ammo_status_label.add_theme_color_override("font_color", Color(0.75, 0.78, 0.85, 1.0))
-			elif weapon_slot.ammo == 0:
-				ammo_status_label.text = "Sem munição"
-				ammo_status_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.45, 1.0))
+				ammo_status_label.add_theme_color_override("font_color", Color(1.0, 0.72, 0.3, 1.0))
 			else:
-				ammo_status_label.text = ""
+				ammo_status_label.text = "Sem %s" % ammo_type_name
+				ammo_status_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.45, 1.0))
+		elif not hint.is_empty():
+			if weapon_slot.ammo < weapon_slot.item.max_ammo and total_inv_ammo > 0:
+				ammo_status_label.text = "%s | [R] Recarregar" % hint
+			else:
+				ammo_status_label.text = hint
+			ammo_status_label.add_theme_color_override("font_color", Color(0.68, 0.88, 0.96, 1.0))
+		elif weapon_slot.ammo < weapon_slot.item.max_ammo and total_inv_ammo > 0:
+			ammo_status_label.text = "[R] Recarregar"
+			ammo_status_label.add_theme_color_override("font_color", Color(0.75, 0.78, 0.85, 1.0))
 		else:
 			ammo_status_label.text = "Carregada"
 			ammo_status_label.add_theme_color_override("font_color", Color(0.55, 0.88, 0.6, 1.0))
 	else:
+		if ammo_title_label:
+			ammo_title_label.text = "MUNIÇÕES NO INV."
+		var s_total := get_total_ammo_for_item("ammo_small")
+		var m_total := get_total_ammo_for_item("ammo_medium")
+		var l_total := get_total_ammo_for_item("ammo_large")
 		weapon_ammo_label.text = "Arma: -- / --"
 		weapon_ammo_label.add_theme_color_override("font_color", Color(0.65, 0.68, 0.75, 1.0))
+		inventory_ammo_label.text = "P:%d | M:%d | G:%d" % [s_total, m_total, l_total]
 		ammo_status_label.text = "Sem arma em mãos"
 		ammo_status_label.add_theme_color_override("font_color", Color(0.6, 0.63, 0.7, 1.0))

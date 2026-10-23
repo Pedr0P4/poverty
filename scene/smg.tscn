@@ -1,0 +1,63 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://script/smg.gd" id="1_smg"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_Body"]
+albedo_color = Color(0.18, 0.22, 0.24, 1)
+metallic = 0.5
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_Accent"]
+albedo_color = Color(0.18, 0.85, 0.65, 1)
+roughness = 0.45
+
+[sub_resource type="StandardMaterial3D" id="Mat_Dark"]
+albedo_color = Color(0.1, 0.11, 0.13, 1)
+metallic = 0.75
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="Mesh_Body"]
+material = SubResource("Mat_Body")
+size = Vector3(0.095, 0.13, 0.38)
+
+[sub_resource type="BoxMesh" id="Mesh_VectorFront"]
+material = SubResource("Mat_Accent")
+size = Vector3(0.082, 0.15, 0.14)
+
+[sub_resource type="BoxMesh" id="Mesh_ExtendedMag"]
+material = SubResource("Mat_Dark")
+size = Vector3(0.048, 0.28, 0.065)
+
+[sub_resource type="BoxMesh" id="Mesh_Suppressor"]
+material = SubResource("Mat_Dark")
+size = Vector3(0.052, 0.052, 0.22)
+
+[sub_resource type="BoxMesh" id="Mesh_StockWire"]
+material = SubResource("Mat_Accent")
+size = Vector3(0.045, 0.07, 0.20)
+
+[node name="SMG" type="Node3D" node_paths=PackedStringArray("begin")]
+script = ExtResource("1_smg")
+begin = NodePath("Begin")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_Body")
+
+[node name="VectorFront" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, -0.18)
+mesh = SubResource("Mesh_VectorFront")
+
+[node name="ExtendedMag" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9659258, -0.25881904, 0, 0.25881904, 0.9659258, 0, -0.18, -0.16)
+mesh = SubResource("Mesh_ExtendedMag")
+
+[node name="Suppressor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.34)
+mesh = SubResource("Mesh_Suppressor")
+
+[node name="StockWire" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0.26)
+mesh = SubResource("Mesh_StockWire")
+
+[node name="Begin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.47)
