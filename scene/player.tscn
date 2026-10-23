@@ -1,9 +1,14 @@
-[gd_scene format=3 uid="uid://dsip1rgvfy5ts"]
+[gd_scene load_steps=12 format=3 uid="uid://dsip1rgvfy5ts"]
 
 [ext_resource type="Script" uid="uid://bw0dsmikt7p1e" path="res://script/player.gd" id="1_xo3ru"]
 [ext_resource type="Script" uid="uid://b5adeda5xysas" path="res://script/camera.gd" id="2_hjaqi"]
 [ext_resource type="PackedScene" uid="uid://cntx413cvd5lv" path="res://scene/rifle.tscn" id="3_fvtld"]
 [ext_resource type="PackedScene" path="res://scene/inventory_ui.tscn" id="4_invui"]
+[ext_resource type="PackedScene" path="res://scene/pistol.tscn" id="5_pistol"]
+[ext_resource type="PackedScene" path="res://scene/smg.tscn" id="6_smg"]
+[ext_resource type="PackedScene" path="res://scene/shotgun.tscn" id="7_shotgun"]
+[ext_resource type="PackedScene" path="res://scene/sniper.tscn" id="8_sniper"]
+[ext_resource type="PackedScene" path="res://scene/lmg.tscn" id="9_lmg"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_d78xx"]
 
@@ -27,7 +32,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47143447, 0)
 script = ExtResource("2_hjaqi")
 
 [node name="Rifle" parent="Head/VHead" unique_id=2048976162 instance=ExtResource("3_fvtld")]
-transform = Transform3D(0.30942747, 0, 0, 0, 0.28587717, 0, 0, 0, 1, -0.38549113, -0.44216937, -0.48681056)
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.34, -0.32, -0.52)
+
+[node name="Pistol" parent="Head/VHead" instance=ExtResource("5_pistol")]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.28, -0.28, -0.44)
+
+[node name="SMG" parent="Head/VHead" instance=ExtResource("6_smg")]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, -0.30, -0.48)
+
+[node name="Shotgun" parent="Head/VHead" instance=ExtResource("7_shotgun")]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, -0.33, -0.50)
+
+[node name="Sniper" parent="Head/VHead" instance=ExtResource("8_sniper")]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.34, -0.32, -0.52)
+
+[node name="LMG" parent="Head/VHead" instance=ExtResource("9_lmg")]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36, -0.35, -0.50)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1465648275]
 

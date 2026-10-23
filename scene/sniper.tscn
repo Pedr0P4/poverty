@@ -1,0 +1,73 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://script/sniper.gd" id="1_sniper"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_Chassis"]
+albedo_color = Color(0.48, 0.24, 0.72, 1)
+metallic = 0.45
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="Mat_Carbon"]
+albedo_color = Color(0.10, 0.11, 0.14, 1)
+metallic = 0.8
+roughness = 0.25
+
+[sub_resource type="StandardMaterial3D" id="Mat_Lens"]
+albedo_color = Color(0.35, 0.88, 1.0, 1)
+emission_enabled = true
+emission = Color(0.2, 0.65, 0.95, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="BoxMesh" id="Mesh_Chassis"]
+material = SubResource("Mat_Chassis")
+size = Vector3(0.095, 0.12, 0.56)
+
+[sub_resource type="BoxMesh" id="Mesh_LongBarrel"]
+material = SubResource("Mat_Carbon")
+size = Vector3(0.038, 0.038, 0.88)
+
+[sub_resource type="BoxMesh" id="Mesh_MuzzleBrake"]
+material = SubResource("Mat_Carbon")
+size = Vector3(0.06, 0.05, 0.10)
+
+[sub_resource type="BoxMesh" id="Mesh_ScopeTube"]
+material = SubResource("Mat_Carbon")
+size = Vector3(0.058, 0.058, 0.36)
+
+[sub_resource type="BoxMesh" id="Mesh_ScopeLens"]
+material = SubResource("Mat_Lens")
+size = Vector3(0.062, 0.062, 0.02)
+
+[sub_resource type="BoxMesh" id="Mesh_Stock"]
+material = SubResource("Mat_Chassis")
+size = Vector3(0.08, 0.13, 0.32)
+
+[node name="Sniper" type="Node3D" node_paths=PackedStringArray("begin")]
+script = ExtResource("1_sniper")
+begin = NodePath("Begin")
+
+[node name="Chassis" type="MeshInstance3D" parent="."]
+mesh = SubResource("Mesh_Chassis")
+
+[node name="LongBarrel" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.62)
+mesh = SubResource("Mesh_LongBarrel")
+
+[node name="MuzzleBrake" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -1.06)
+mesh = SubResource("Mesh_MuzzleBrake")
+
+[node name="ScopeTube" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, -0.05)
+mesh = SubResource("Mesh_ScopeTube")
+
+[node name="ScopeLens" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0.13)
+mesh = SubResource("Mesh_ScopeLens")
+
+[node name="Stock" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.01, 0.38)
+mesh = SubResource("Mesh_Stock")
+
+[node name="Begin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -1.14)

@@ -1,0 +1,57 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://script/pistol.gd" id="1_pistol"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_Slide"]
+albedo_color = Color(0.32, 0.76, 0.96, 1)
+metallic = 0.6
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Mat_Frame"]
+albedo_color = Color(0.16, 0.18, 0.22, 1)
+metallic = 0.4
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_Barrel"]
+albedo_color = Color(0.08, 0.09, 0.11, 1)
+metallic = 0.8
+roughness = 0.25
+
+[sub_resource type="BoxMesh" id="Mesh_Slide"]
+material = SubResource("Mat_Slide")
+size = Vector3(0.075, 0.075, 0.34)
+
+[sub_resource type="BoxMesh" id="Mesh_Frame"]
+material = SubResource("Mat_Frame")
+size = Vector3(0.068, 0.045, 0.30)
+
+[sub_resource type="BoxMesh" id="Mesh_Grip"]
+material = SubResource("Mat_Frame")
+size = Vector3(0.062, 0.16, 0.085)
+
+[sub_resource type="BoxMesh" id="Mesh_Muzzle"]
+material = SubResource("Mat_Barrel")
+size = Vector3(0.032, 0.032, 0.08)
+
+[node name="Pistol" type="Node3D" node_paths=PackedStringArray("begin")]
+script = ExtResource("1_pistol")
+begin = NodePath("Begin")
+
+[node name="Slide" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, -0.05)
+mesh = SubResource("Mesh_Slide")
+
+[node name="Frame" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.015, -0.04)
+mesh = SubResource("Mesh_Frame")
+
+[node name="Grip" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9781476, -0.20791169, 0, 0.20791169, 0.9781476, 0, -0.095, 0.065)
+mesh = SubResource("Mesh_Grip")
+
+[node name="Muzzle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, -0.24)
+mesh = SubResource("Mesh_Muzzle")
+
+[node name="Begin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, -0.30)

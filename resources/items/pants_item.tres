@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://script/item_data.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c8i5tqb661s8i" path="res://icon.svg" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "pants"
+item_name = "Calça"
+icon = ExtResource("2_icon")
+icon_modulate = Color(0.38, 0.52, 0.68, 1)
+can_stack = false
+max_stack = 1
+is_rifle = false
+equip_type = 4

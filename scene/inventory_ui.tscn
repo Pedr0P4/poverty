@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://script/inventory_ui.gd" id="1_inv_script"]
 
@@ -27,6 +27,25 @@ corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reload_bg"]
+bg_color = Color(0.08, 0.09, 0.11, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.38, 0.44, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reload_fill"]
+bg_color = Color(0.95, 0.78, 0.22, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="InventoryUI" type="Control"]
 layout_mode = 3
@@ -60,11 +79,223 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="HUDHotbarGrid" type="GridContainer" parent="HUDHotbarPanel/MarginContainer"]
+[node name="HUDHotbarGrid" type="HBoxContainer" parent="HUDHotbarPanel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
-columns = 6
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="HUDAmmoPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -112.0
+offset_right = -20.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_hotbar")
+
+[node name="MarginContainer" type="MarginContainer" parent="HUDAmmoPanel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUDAmmoPanel/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="HUDAmmoPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.78, 0.85, 1)
+theme_override_font_sizes/font_size = 11
+text = "MUNIÇÃO"
+horizontal_alignment = 2
+
+[node name="WeaponAmmoLabel" type="Label" parent="HUDAmmoPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "Arma: -- / --"
+horizontal_alignment = 2
+
+[node name="InventoryAmmoLabel" type="Label" parent="HUDAmmoPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.25, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "Inventário: 0"
+horizontal_alignment = 2
+
+[node name="AmmoStatusLabel" type="Label" parent="HUDAmmoPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.78, 0.85, 1)
+theme_override_font_sizes/font_size = 11
+text = ""
+horizontal_alignment = 2
+
+[node name="ReloadIndicator" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -85.0
+offset_top = 24.0
+offset_right = 85.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="ReloadLabel" type="Label" parent="ReloadIndicator"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 13
+text = "RECARREGANDO..."
+horizontal_alignment = 1
+
+[node name="ReloadProgressBar" type="ProgressBar" parent="ReloadIndicator"]
+custom_minimum_size = Vector2(170, 10)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_reload_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_reload_fill")
+max_value = 1.0
+step = 0.001
+show_percentage = false
+
+[node name="EquipmentModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -418.0
+offset_top = -200.0
+offset_right = -68.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="MarginContainer" type="MarginContainer" parent="EquipmentModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EquipmentModal/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="EquipmentModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 16
+text = "EQUIPAMENTOS"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="EquipmentModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ColumnsHBox" type="HBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="WeaponsColumn" type="VBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="WeaponTitle" type="Label" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/WeaponsColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.78, 0.85, 1)
+theme_override_font_sizes/font_size = 11
+text = "Armas"
+horizontal_alignment = 1
+
+[node name="WeaponsSlotBox" type="VBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/WeaponsColumn"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="VSeparatorLeft" type="VSeparator" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox"]
+layout_mode = 2
+
+[node name="ClothesColumn" type="VBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="ClothesTitle" type="Label" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/ClothesColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.78, 0.85, 1)
+theme_override_font_sizes/font_size = 11
+text = "Roupas"
+horizontal_alignment = 1
+
+[node name="HeadSlotBox" type="HBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/ClothesColumn"]
+layout_mode = 2
+alignment = 1
+
+[node name="BustSlotsBox" type="HBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/ClothesColumn"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="LegsSlotBox" type="HBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/ClothesColumn"]
+layout_mode = 2
+alignment = 1
+
+[node name="FeetSlotBox" type="HBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/ClothesColumn"]
+layout_mode = 2
+alignment = 1
+
+[node name="VSeparatorRight" type="VSeparator" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox"]
+layout_mode = 2
+
+[node name="BagColumn" type="VBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="BagTitle" type="Label" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/BagColumn"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.78, 0.85, 1)
+theme_override_font_sizes/font_size = 11
+text = "Bolsa"
+horizontal_alignment = 1
+
+[node name="BagSlotBox" type="VBoxContainer" parent="EquipmentModal/MarginContainer/VBoxContainer/ColumnsHBox/BagColumn"]
+layout_mode = 2
+size_flags_horizontal = 4
+alignment = 1
 
 [node name="InventoryModal" type="PanelContainer" parent="."]
 visible = false
@@ -74,10 +305,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -236.0
-offset_top = -195.0
-offset_right = 236.0
-offset_bottom = 195.0
+offset_left = -52.0
+offset_top = -200.0
+offset_right = 420.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
@@ -129,7 +360,7 @@ columns = 6
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.68, 0.75, 1)
 theme_override_font_sizes/font_size = 11
-text = "Esq: Pegar/Arrastar | Dir: Pegar 1 | Shift+Clique: Mover Rápido"
+text = "Esq: Pegar/Arrastar | Dir: Pegar 1 | Shift+Clique: Equipar/Mover"
 horizontal_alignment = 1
 
 [node name="CursorItem" type="Control" parent="."]
