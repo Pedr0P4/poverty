@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://b8x7y2m1k0qaq"]
+[gd_scene format=3 uid="uid://b8x7y2m1k0qaq"]
 
 [ext_resource type="Script" uid="uid://bg0x3oslbtvo1" path="res://script/gerador_terreno.gd" id="1_terreno"]
 [ext_resource type="PackedScene" uid="uid://dsip1rgvfy5ts" path="res://scene/player.tscn" id="2_player"]
@@ -21,6 +21,7 @@ tonemap_mode = 2
 fog_enabled = true
 fog_mode = 1
 fog_light_color = Color(0.72, 0.82, 0.92, 1)
+fog_density = 1.0
 fog_depth_begin = 65.0
 fog_depth_end = 130.0
 

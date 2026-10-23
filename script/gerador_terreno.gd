@@ -74,7 +74,6 @@ extends Node3D
 @export var posicionar_player_no_chao: bool = true
 @export var player: CharacterBody3D
 
-
 var noise_terreno: FastNoiseLite
 var noise_civilizacao: FastNoiseLite
 
@@ -130,7 +129,6 @@ func _ready() -> void:
 	_ultima_dir_visao = dir_visao
 	_atualizar_visibilidade_chunks(pos_jogador_xz, dir_visao)
 
-
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
@@ -153,6 +151,7 @@ func _process(delta: float) -> void:
 		_atualizar_visibilidade_chunks(pos_jogador_xz, dir_visao)
 	
 	_processar_fila_geracao()
+	
 
 
 func _processar_timers_descarregamento(delta: float) -> void:
@@ -442,11 +441,17 @@ func _gerar_chunk(coord: Vector2i) -> Node3D:
 	st.generate_tangents()
 	var malha_chunk: ArrayMesh = st.commit()
 	
+	var nav_region := NavigationRegion3D.new()
+	var navmesh := NavigationMesh.new()
+	nav_region.navigation_mesh = navmesh
+
 	var mesh_inst := MeshInstance3D.new()
 	mesh_inst.name = "MeshInstance3D"
 	mesh_inst.mesh = malha_chunk
 	mesh_inst.material_override = _material_terreno
-	chunk_node.add_child(mesh_inst)
+	nav_region.add_child(mesh_inst)
+	
+	
 	
 	var trimesh_shape: ConcavePolygonShape3D = malha_chunk.create_trimesh_shape()
 	if trimesh_shape != null:
@@ -460,10 +465,9 @@ func _gerar_chunk(coord: Vector2i) -> Node3D:
 		var col_shape := CollisionShape3D.new()
 		col_shape.name = "CollisionShape3D"
 		col_shape.shape = trimesh_shape
-		
 		static_body.add_child(col_shape)
-		chunk_node.add_child(static_body)
-	
+		nav_region.add_child(static_body)
+	chunk_node.add_child(nav_region)
 	var vilas_node := Node3D.new()
 	vilas_node.name = "Vilas"
 	chunk_node.add_child(vilas_node)
@@ -471,7 +475,10 @@ func _gerar_chunk(coord: Vector2i) -> Node3D:
 	
 	_chunks_container.add_child(chunk_node)
 	_chunks_ativos[coord] = chunk_node
-	
+	nav_region.bake_navigation_mesh()
+	#essa linha de código é horrível porque ela recalcula todas as conexões
+	#de navmesh quando você roda ele.
+	NavigationServer3D.map_set_edge_connection_margin(get_world_3d().get_navigation_map(), 2) 
 	return chunk_node
 
 
