@@ -36,7 +36,6 @@ shadow_enabled = true
 
 [node name="GeradorTerreno" type="Node3D" parent="." unique_id=767866699]
 script = ExtResource("1_terreno")
-region_rid = null
 
 [node name="Player" parent="." unique_id=516778338 instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)

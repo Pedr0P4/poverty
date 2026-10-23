@@ -74,13 +74,6 @@ extends Node3D
 @export var posicionar_player_no_chao: bool = true
 @export var player: CharacterBody3D
 
-@export_group("Navegação")
-@export var navmesh: NavigationMesh
-@export var region_rid: RID
-@export var nav_source_geometry: NavigationMeshSourceGeometryData3D
-var callback_parsing: Callable = _on_parsing_done
-var callback_baking: Callable = _on_baking_done
-
 var noise_terreno: FastNoiseLite
 var noise_civilizacao: FastNoiseLite
 
@@ -135,7 +128,6 @@ func _ready() -> void:
 	_ultima_pos_jogador_xz = pos_jogador_xz
 	_ultima_dir_visao = dir_visao
 	_atualizar_visibilidade_chunks(pos_jogador_xz, dir_visao)
-	_inicializar_navegacao()
 
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
@@ -449,11 +441,17 @@ func _gerar_chunk(coord: Vector2i) -> Node3D:
 	st.generate_tangents()
 	var malha_chunk: ArrayMesh = st.commit()
 	
+	var nav_region := NavigationRegion3D.new()
+	var navmesh := NavigationMesh.new()
+	nav_region.navigation_mesh = navmesh
+
 	var mesh_inst := MeshInstance3D.new()
 	mesh_inst.name = "MeshInstance3D"
 	mesh_inst.mesh = malha_chunk
 	mesh_inst.material_override = _material_terreno
-	chunk_node.add_child(mesh_inst)
+	nav_region.add_child(mesh_inst)
+	
+	
 	
 	var trimesh_shape: ConcavePolygonShape3D = malha_chunk.create_trimesh_shape()
 	if trimesh_shape != null:
@@ -467,10 +465,9 @@ func _gerar_chunk(coord: Vector2i) -> Node3D:
 		var col_shape := CollisionShape3D.new()
 		col_shape.name = "CollisionShape3D"
 		col_shape.shape = trimesh_shape
-		
 		static_body.add_child(col_shape)
-		chunk_node.add_child(static_body)
-	
+		nav_region.add_child(static_body)
+	chunk_node.add_child(nav_region)
 	var vilas_node := Node3D.new()
 	vilas_node.name = "Vilas"
 	chunk_node.add_child(vilas_node)
@@ -478,7 +475,10 @@ func _gerar_chunk(coord: Vector2i) -> Node3D:
 	
 	_chunks_container.add_child(chunk_node)
 	_chunks_ativos[coord] = chunk_node
-	
+	nav_region.bake_navigation_mesh()
+	#essa linha de código é horrível porque ela recalcula todas as conexões
+	#de navmesh quando você roda ele.
+	NavigationServer3D.map_set_edge_connection_margin(get_world_3d().get_navigation_map(), 2) 
 	return chunk_node
 
 
@@ -758,26 +758,3 @@ func _gerar_preview_editor() -> void:
 	for dx in range(-1, 2):
 		for dz in range(-1, 2):
 			_gerar_chunk(Vector2i(dx, dz))
-
-#region Navigation
-
-func _inicializar_navegacao() -> void:
-	navmesh = NavigationMesh.new()
-	navmesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	region_rid = NavigationServer3D.region_create()
-	nav_source_geometry = NavigationMeshSourceGeometryData3D.new()
-	
-	NavigationServer3D.region_set_enabled(region_rid,true)
-	NavigationServer3D.region_set_map(region_rid,get_world_3d().get_navigation_map())
-	
-	_parse_source_geometry.call_deferred()
-func _parse_source_geometry() -> void:
-	nav_source_geometry.clear()
-	var root: Node3D = self
-	NavigationServer3D.parse_source_geometry_data(navmesh,nav_source_geometry, root, callback_parsing)
-	
-func _on_parsing_done() -> void:
-	NavigationServer3D.bake_from_source_geometry_data_async(navmesh,nav_source_geometry,callback_baking)
-	
-func _on_baking_done() -> void:
-	NavigationServer3D.region_set_navigation_mesh(region_rid, navmesh)
