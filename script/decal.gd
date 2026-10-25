@@ -29,7 +29,7 @@ func apply_decal(point: Vector3, normal: Vector3, target: Node3D) -> void:
 	
 	decal.global_position = point
 	decal.look_at(point + normal, up_dir)
-	decal.rotate_object_local(Vector3.RIGHT, rad_to_deg(90))
+	decal.rotate_object_local(Vector3.RIGHT, deg_to_rad(90.0))
 	decal.visible = true
 	decal.scale = Vector3.ONE / 4
 	

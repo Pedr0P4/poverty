@@ -92,7 +92,18 @@ var _is_using_medkit: bool = false
 
 var _style_reload_fill: StyleBoxFlat
 var _style_medkit_fill: StyleBoxFlat
+var _style_stamina_fill: StyleBoxFlat
 
+var _loot_toast_timer: float = 0.0
+var _loot_toast_fade_duration: float = 0.6
+
+@onready var hud_top_timer_panel: PanelContainer = $HUDTopTimerPanel
+@onready var timer_label: Label = $HUDTopTimerPanel/MarginContainer/VBoxContainer/TimerLabel
+@onready var phase_label: Label = $HUDTopTimerPanel/MarginContainer/VBoxContainer/PhaseLabel
+@onready var interaction_label: Label = $InteractionLabel
+@onready var loot_toast_label: Label = $LootToastLabel
+@onready var hud_stamina_container: Control = $HUDStaminaContainer
+@onready var stamina_progress_bar: ProgressBar = $HUDStaminaContainer/StaminaProgressBar
 @onready var hud_hotbar_panel: PanelContainer = $HUDHotbarPanel
 @onready var hud_hotbar_grid: HBoxContainer = $HUDHotbarPanel/MarginContainer/HUDHotbarGrid
 @onready var hud_ammo_panel: PanelContainer = $HUDAmmoPanel
@@ -117,13 +128,57 @@ var _style_medkit_fill: StyleBoxFlat
 @onready var cursor_icon: TextureRect = $CursorItem/Icon
 @onready var cursor_quantity: Label = $CursorItem/QuantityLabel
 
+var is_game_over: bool = false
+@onready var game_over_modal: Control = get_node_or_null("GameOverModal") as Control
+@onready var go_run_time_label: Label = get_node_or_null("GameOverModal/CenterPanel/MarginContainer/VBoxContainer/StatsContainer/RunTimeLabel") as Label
+@onready var go_run_kills_label: Label = get_node_or_null("GameOverModal/CenterPanel/MarginContainer/VBoxContainer/StatsContainer/RunKillsLabel") as Label
+@onready var go_record_badge_label: Label = get_node_or_null("GameOverModal/CenterPanel/MarginContainer/VBoxContainer/RecordBadgeLabel") as Label
+@onready var go_best_time_label: Label = get_node_or_null("GameOverModal/CenterPanel/MarginContainer/VBoxContainer/BestStatsContainer/BestTimeLabel") as Label
+@onready var go_best_kills_label: Label = get_node_or_null("GameOverModal/CenterPanel/MarginContainer/VBoxContainer/BestStatsContainer/BestKillsLabel") as Label
+@onready var btn_go_restart: Button = get_node_or_null("GameOverModal/CenterPanel/MarginContainer/VBoxContainer/ButtonContainer/BtnRestart") as Button
+@onready var btn_go_main_menu: Button = get_node_or_null("GameOverModal/CenterPanel/MarginContainer/VBoxContainer/ButtonContainer/BtnMainMenu") as Button
+
 
 func _ready() -> void:
+	_ensure_inventory_and_interact_actions()
 	_setup_indicator_styles()
 	_init_data()
 	_build_ui_slots()
 	_populate_starter_items()
 	_set_open_state(false)
+	
+	if btn_go_restart != null:
+		btn_go_restart.pressed.connect(_on_go_restart_pressed)
+	if btn_go_main_menu != null:
+		btn_go_main_menu.pressed.connect(_on_go_main_menu_pressed)
+
+
+
+func _ensure_inventory_and_interact_actions() -> void:
+	if not InputMap.has_action("interact"):
+		InputMap.add_action("interact")
+		var ev_e := InputEventKey.new()
+		ev_e.physical_keycode = KEY_E
+		InputMap.action_add_event("interact", ev_e)
+
+	if InputMap.has_action("inventory"):
+		var has_tab := false
+		var has_i := false
+		for ev in InputMap.action_get_events("inventory"):
+			if ev is InputEventKey:
+				var kev := ev as InputEventKey
+				if kev.physical_keycode == KEY_TAB or kev.keycode == KEY_TAB:
+					has_tab = true
+				elif kev.physical_keycode == KEY_I or kev.keycode == KEY_I:
+					has_i = true
+		if not has_tab:
+			var ev_tab := InputEventKey.new()
+			ev_tab.physical_keycode = KEY_TAB
+			InputMap.action_add_event("inventory", ev_tab)
+		if not has_i:
+			var ev_i := InputEventKey.new()
+			ev_i.physical_keycode = KEY_I
+			InputMap.action_add_event("inventory", ev_i)
 
 
 func _setup_indicator_styles() -> void:
@@ -135,16 +190,40 @@ func _setup_indicator_styles() -> void:
 	_style_medkit_fill.bg_color = Color(0.25, 0.9, 0.42, 1.0)
 	_style_medkit_fill.set_corner_radius_all(3)
 
+	_style_stamina_fill = StyleBoxFlat.new()
+	_style_stamina_fill.bg_color = Color(0.28, 0.85, 0.95, 1.0)
+	_style_stamina_fill.set_corner_radius_all(3)
+	if stamina_progress_bar != null:
+		stamina_progress_bar.add_theme_stylebox_override("fill", _style_stamina_fill)
 
-func _process(_delta: float) -> void:
+
+func _process(delta: float) -> void:
 	if cursor_item.visible:
 		cursor_item.global_position = get_global_mouse_position() - (cursor_item.size * 0.5)
 	if not is_open:
 		_update_ammo_hud()
 
+	if _loot_toast_timer > 0.0 and loot_toast_label != null:
+		_loot_toast_timer = maxf(0.0, _loot_toast_timer - delta)
+		if _loot_toast_timer <= 0.0:
+			loot_toast_label.visible = false
+		elif _loot_toast_timer < _loot_toast_fade_duration:
+			loot_toast_label.modulate.a = clampf(_loot_toast_timer / _loot_toast_fade_duration, 0.0, 1.0)
+		else:
+			loot_toast_label.modulate.a = 1.0
+
 
 func _input(event: InputEvent) -> void:
+	if is_game_over:
+		return
+
 	if event is InputEventKey and event.pressed and not event.echo:
+		if not is_open and event.is_action_pressed("interact"):
+			var player := Player.get_instance()
+			if player != null and player.has_method("try_interact") and player.try_interact():
+				get_viewport().set_input_as_handled()
+				return
+
 		if event.is_action_pressed("inventory"):
 			toggle_inventory()
 			get_viewport().set_input_as_handled()
@@ -239,36 +318,269 @@ func _build_ui_slots() -> void:
 
 
 func _populate_starter_items() -> void:
-	# Hotbar inicial: 1 caixa de cada tipo de munição (Pequena, Média e Grande) + consumíveis
-	hotbar_slots[0].set_data(ITEM_AMMO_SMALL, 1, 36)
-	hotbar_slots[1].set_data(ITEM_AMMO_MEDIUM, 1, 45)
-	hotbar_slots[2].set_data(ITEM_AMMO_LARGE, 1, 60)
-	hotbar_slots[3].set_data(ITEM_MEDKIT, 6)
-	hotbar_slots[4].set_data(ITEM_KEY, 1)
+	# Kit inicial básico de sobrevivência: Pistola equipada, pouca munição pequena e 1 Kit Médico
+	equipment_slots[EquipSlot.WEAPON_1].set_data(ITEM_PISTOL, 1, 12)
+	selected_hotbar_index = HOTBAR_WEAPON_1_INDEX
 
-	# Linha 1 do Inventário (0..5): Todas as 6 armas (com munição parcial para já atirar ou testar recarga [R])
-	inventory_slots[0].set_data(ITEM_RIFLE, 1, 20)
-	inventory_slots[1].set_data(ITEM_PISTOL, 1, 10)
-	inventory_slots[2].set_data(ITEM_SMG, 1, 20)
-	inventory_slots[3].set_data(ITEM_SHOTGUN, 1, 5)
-	inventory_slots[4].set_data(ITEM_SNIPER, 1, 3)
-	inventory_slots[5].set_data(ITEM_LMG, 1, 45)
+	hotbar_slots[0].set_data(ITEM_AMMO_SMALL, 1, 24)
+	hotbar_slots[1].set_data(ITEM_MEDKIT, 1)
 
-	# Linha 2 do Inventário (6..11): Caixas extras dos 3 tipos de munição
-	inventory_slots[6].set_data(ITEM_AMMO_SMALL, 1, 36)
-	inventory_slots[7].set_data(ITEM_AMMO_SMALL, 1, 36)
-	inventory_slots[8].set_data(ITEM_AMMO_MEDIUM, 1, 45)
-	inventory_slots[9].set_data(ITEM_AMMO_MEDIUM, 1, 45)
-	inventory_slots[10].set_data(ITEM_AMMO_LARGE, 1, 60)
-	inventory_slots[11].set_data(ITEM_AMMO_LARGE, 1, 60)
 
-	# Linha 3 do Inventário (12..17): Roupas e Bolsa
-	inventory_slots[12].set_data(ITEM_HAT, 1)
-	inventory_slots[13].set_data(ITEM_SHIRT, 1)
-	inventory_slots[14].set_data(ITEM_JACKET, 1)
-	inventory_slots[15].set_data(ITEM_PANTS, 1)
-	inventory_slots[16].set_data(ITEM_SHOES, 1)
-	inventory_slots[17].set_data(ITEM_BAG, 1)
+func add_loot_item(item: ItemData, quantity: int = 1, ammo: int = 0) -> int:
+	if item == null:
+		return 0
+
+	# 1. Caixas de munição: completa primeiro caixas parciais do mesmo calibre, depois ocupa slots vazios
+	if item.is_ammo:
+		var remaining_bullets: int = maxi(1, ammo)
+		var added_bullets: int = 0
+		var max_box: int = maxi(1, item.max_ammo)
+
+		for slot: InventorySlotData in hotbar_slots:
+			if not slot.is_empty() and slot.item == item and slot.ammo < max_box:
+				var space: int = max_box - slot.ammo
+				var take: int = mini(space, remaining_bullets)
+				slot.ammo += take
+				remaining_bullets -= take
+				added_bullets += take
+				if remaining_bullets <= 0:
+					_refresh_all_ui()
+					return added_bullets
+
+		for slot: InventorySlotData in inventory_slots:
+			if not slot.is_empty() and slot.item == item and slot.ammo < max_box:
+				var space: int = max_box - slot.ammo
+				var take: int = mini(space, remaining_bullets)
+				slot.ammo += take
+				remaining_bullets -= take
+				added_bullets += take
+				if remaining_bullets <= 0:
+					_refresh_all_ui()
+					return added_bullets
+
+		for slot: InventorySlotData in hotbar_slots:
+			if slot.is_empty():
+				var take: int = mini(max_box, remaining_bullets)
+				slot.set_data(item, 1, take)
+				remaining_bullets -= take
+				added_bullets += take
+				if remaining_bullets <= 0:
+					_refresh_all_ui()
+					return added_bullets
+
+		for slot: InventorySlotData in inventory_slots:
+			if slot.is_empty():
+				var take: int = mini(max_box, remaining_bullets)
+				slot.set_data(item, 1, take)
+				remaining_bullets -= take
+				added_bullets += take
+				if remaining_bullets <= 0:
+					_refresh_all_ui()
+					return added_bullets
+
+		if added_bullets > 0:
+			_refresh_all_ui()
+		return added_bullets
+
+	# 2. Armas: se houver um slot de arma equipado vazio (Arma 1 ou Arma 2), equipa automaticamente
+	if item.equip_type == ItemData.EquipType.WEAPON:
+		for w_slot_idx: int in [EquipSlot.WEAPON_1, EquipSlot.WEAPON_2]:
+			if equipment_slots[w_slot_idx].is_empty():
+				equipment_slots[w_slot_idx].set_data(item, 1, ammo)
+				_refresh_all_ui()
+				return 1
+
+	# 3. Itens empilháveis (ex: Kit Médico)
+	var remaining_qty: int = maxi(1, quantity)
+	var added_qty: int = 0
+	if item.can_stack:
+		var max_s: int = item.get_effective_max_stack()
+		for slot: InventorySlotData in hotbar_slots:
+			if not slot.is_empty() and slot.item == item and slot.quantity < max_s:
+				var space: int = max_s - slot.quantity
+				var take: int = mini(space, remaining_qty)
+				slot.quantity += take
+				remaining_qty -= take
+				added_qty += take
+				if remaining_qty <= 0:
+					_refresh_all_ui()
+					return added_qty
+
+		for slot: InventorySlotData in inventory_slots:
+			if not slot.is_empty() and slot.item == item and slot.quantity < max_s:
+				var space: int = max_s - slot.quantity
+				var take: int = mini(space, remaining_qty)
+				slot.quantity += take
+				remaining_qty -= take
+				added_qty += take
+				if remaining_qty <= 0:
+					_refresh_all_ui()
+					return added_qty
+
+	# 4. Slots vazios no inventário ou hotbar
+	var first_slots: Array[InventorySlotData] = hotbar_slots if item.can_stack else inventory_slots
+	var second_slots: Array[InventorySlotData] = inventory_slots if item.can_stack else hotbar_slots
+
+	for slot: InventorySlotData in first_slots:
+		if slot.is_empty():
+			var max_s: int = item.get_effective_max_stack()
+			var take: int = mini(max_s, remaining_qty)
+			slot.set_data(item, take, ammo)
+			remaining_qty -= take
+			added_qty += take
+			if remaining_qty <= 0:
+				_refresh_all_ui()
+				return added_qty
+
+	for slot: InventorySlotData in second_slots:
+		if slot.is_empty():
+			var max_s: int = item.get_effective_max_stack()
+			var take: int = mini(max_s, remaining_qty)
+			slot.set_data(item, take, ammo)
+			remaining_qty -= take
+			added_qty += take
+			if remaining_qty <= 0:
+				_refresh_all_ui()
+				return added_qty
+
+	if added_qty > 0:
+		_refresh_all_ui()
+	return added_qty
+
+
+static func generate_survival_chest_loot(rng: RandomNumberGenerator, tier: int = 0) -> Array[Dictionary]:
+	var loot: Array[Dictionary] = []
+
+	# 1. Sempre contém pelo menos 1 caixa de munição para sobrevivência
+	var ammo_pool: Array[ItemData] = [ITEM_AMMO_SMALL, ITEM_AMMO_MEDIUM, ITEM_AMMO_LARGE]
+	var chosen_ammo: ItemData = ammo_pool[rng.randi_range(0, ammo_pool.size() - 1)]
+	var bullets: int = rng.randi_range(int(chosen_ammo.max_ammo * 0.45), chosen_ammo.max_ammo)
+	loot.append({"item": chosen_ammo, "quantity": 1, "ammo": bullets})
+
+	# 2. Alta chance de Kit Médico ou 2ª caixa de munição
+	var roll_med := rng.randf()
+	var med_chance := 0.72 if tier > 0 else 0.62
+	if roll_med <= med_chance:
+		var med_qty := 2 if (rng.randf() < (0.38 if tier > 0 else 0.25)) else 1
+		loot.append({"item": ITEM_MEDKIT, "quantity": med_qty, "ammo": 0})
+	elif roll_med <= 0.90:
+		var extra_ammo: ItemData = ammo_pool[rng.randi_range(0, ammo_pool.size() - 1)]
+		var extra_bullets: int = rng.randi_range(10, int(extra_ammo.max_ammo * 0.75))
+		loot.append({"item": extra_ammo, "quantity": 1, "ammo": extra_bullets})
+
+	# 3. Chance de encontrar uma Arma ou Equipamento/Roupa
+	var roll_special := rng.randf()
+	var weapon_chance := 0.50 if tier > 0 else 0.36
+	if roll_special <= weapon_chance:
+		var weapon_pool: Array[ItemData] = [ITEM_PISTOL, ITEM_SMG, ITEM_SHOTGUN, ITEM_RIFLE, ITEM_SNIPER, ITEM_LMG]
+		var chosen_w: ItemData = weapon_pool[rng.randi_range(0, weapon_pool.size() - 1)]
+		var start_ammo: int = rng.randi_range(maxi(1, int(chosen_w.max_ammo * 0.4)), chosen_w.max_ammo)
+		loot.append({"item": chosen_w, "quantity": 1, "ammo": start_ammo})
+	elif roll_special <= (weapon_chance + 0.26):
+		var gear_pool: Array[ItemData] = [ITEM_HAT, ITEM_SHIRT, ITEM_JACKET, ITEM_PANTS, ITEM_SHOES, ITEM_BAG]
+		var chosen_g: ItemData = gear_pool[rng.randi_range(0, gear_pool.size() - 1)]
+		loot.append({"item": chosen_g, "quantity": 1, "ammo": 0})
+
+	return loot
+
+
+func update_survival_timer_hud(elapsed_seconds: float, is_night: bool, day_phase: float, difficulty_level: int, day_number: int = 1) -> void:
+	if timer_label != null:
+		var total_secs := maxi(0, int(floor(elapsed_seconds)))
+		var mins := total_secs / 60
+		var secs := total_secs % 60
+		timer_label.text = "%02d:%02d" % [mins, secs]
+
+	if phase_label != null:
+		var hora_24 := int(floor(fposmod(day_phase, 1.0) * 24.0))
+		if is_night:
+			phase_label.text = "NOITE %d (%02dh) • AMEAÇA NV. %d" % [day_number, hora_24, difficulty_level]
+			phase_label.add_theme_color_override("font_color", Color(0.62, 0.78, 1.0, 1.0))
+		else:
+			phase_label.text = "DIA %d (%02dh) • AMEAÇA NV. %d" % [day_number, hora_24, difficulty_level]
+			phase_label.add_theme_color_override("font_color", Color(0.98, 0.85, 0.38, 1.0))
+
+
+func set_interaction_prompt(prompt_text: String) -> void:
+	if interaction_label == null:
+		return
+	if is_open or prompt_text.is_empty():
+		interaction_label.visible = false
+	else:
+		interaction_label.text = prompt_text
+		interaction_label.visible = true
+
+
+func show_loot_toast(message: String, color: Color = Color(0.98, 0.88, 0.35, 1.0)) -> void:
+	if loot_toast_label == null:
+		return
+	loot_toast_label.text = message
+	loot_toast_label.add_theme_color_override("font_color", color)
+	loot_toast_label.modulate.a = 1.0
+	loot_toast_label.visible = true
+	_loot_toast_timer = 2.8
+
+
+func show_game_over(survival_time: float, kills: int) -> void:
+	is_game_over = true
+	var res := GameStats.register_run(survival_time, kills)
+
+	if is_open:
+		_set_open_state(false)
+
+	hud_hotbar_panel.visible = false
+	if hud_ammo_panel:
+		hud_ammo_panel.visible = false
+	if hud_stamina_container:
+		hud_stamina_container.visible = false
+	if interaction_label:
+		interaction_label.visible = false
+	if reload_indicator:
+		reload_indicator.visible = false
+	if hud_top_timer_panel:
+		hud_top_timer_panel.visible = false
+	if loot_toast_label:
+		loot_toast_label.visible = false
+
+	if go_run_time_label != null:
+		go_run_time_label.text = "Tempo Sobrevivido: %s" % GameStats.format_time(survival_time)
+	if go_run_kills_label != null:
+		go_run_kills_label.text = "Inimigos Eliminados: %d" % kills
+
+	var is_new_time: bool = bool(res.get("is_new_best_time", false))
+	var is_new_kills: bool = bool(res.get("is_new_best_kills", false))
+	if go_record_badge_label != null:
+		if is_new_time or is_new_kills:
+			var badges: Array[String] = []
+			if is_new_time:
+				badges.append("TEMPO")
+			if is_new_kills:
+				badges.append("ABATES")
+			go_record_badge_label.text = "★ NOVO RECORDE DE %s! ★" % " E ".join(badges)
+			go_record_badge_label.visible = true
+		else:
+			go_record_badge_label.visible = false
+
+	if go_best_time_label != null:
+		go_best_time_label.text = "Recorde Tempo: %s" % GameStats.format_time(float(res.get("best_time", 0.0)))
+	if go_best_kills_label != null:
+		go_best_kills_label.text = "Recorde Abates: %d" % int(res.get("best_kills", 0))
+
+	if game_over_modal != null:
+		game_over_modal.visible = true
+
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+
+func _on_go_restart_pressed() -> void:
+	if is_inside_tree() and get_tree() != null:
+		get_tree().reload_current_scene()
+
+
+func _on_go_main_menu_pressed() -> void:
+	if is_inside_tree() and get_tree() != null:
+		get_tree().change_scene_to_file("res://scene/main_menu.tscn")
+
 
 
 func toggle_inventory() -> void:
@@ -284,6 +596,10 @@ func _set_open_state(open: bool) -> void:
 	hud_hotbar_panel.visible = not is_open
 	if hud_ammo_panel:
 		hud_ammo_panel.visible = not is_open
+	if is_open and hud_stamina_container:
+		hud_stamina_container.visible = false
+	if is_open and interaction_label:
+		interaction_label.visible = false
 	if is_open and reload_indicator:
 		reload_indicator.visible = false
 	inventory_modal.visible = is_open
@@ -296,6 +612,27 @@ func _set_open_state(open: bool) -> void:
 
 	_refresh_all_ui()
 	inventory_toggled.emit(is_open)
+
+
+func update_stamina_hud(ratio: float, alpha: float, exhausted: bool) -> void:
+	if hud_stamina_container == null or stamina_progress_bar == null:
+		return
+	if is_open or alpha <= 0.005:
+		hud_stamina_container.visible = false
+		hud_stamina_container.modulate.a = 0.0
+		return
+
+	hud_stamina_container.visible = true
+	hud_stamina_container.modulate.a = clampf(alpha, 0.0, 1.0)
+	stamina_progress_bar.value = clampf(ratio, 0.0, 1.0)
+
+	if _style_stamina_fill != null:
+		if exhausted:
+			_style_stamina_fill.bg_color = Color(0.95, 0.32, 0.25, 1.0)
+		else:
+			var low_color := Color(0.95, 0.72, 0.22, 1.0)
+			var full_color := Color(0.28, 0.85, 0.95, 1.0)
+			_style_stamina_fill.bg_color = low_color.lerp(full_color, clampf(ratio, 0.0, 1.0))
 
 
 func _get_active_hotbar_indices() -> Array[int]:
@@ -600,10 +937,10 @@ func _place_or_swap_held_into_slot(target_slot: InventorySlotData) -> void:
 
 	# Mesma caixa de munição parcial: junta as balas até o max_ammo da caixa
 	if target_slot.item == held_slot.item and held_slot.item.is_ammo:
-		var max_a := held_slot.item.max_ammo
-		var space_a := max_a - target_slot.ammo
+		var max_a: int = held_slot.item.max_ammo
+		var space_a: int = max_a - target_slot.ammo
 		if space_a > 0 and held_slot.ammo > 0:
-			var transfer_a := mini(space_a, held_slot.ammo)
+			var transfer_a: int = mini(space_a, held_slot.ammo)
 			target_slot.ammo += transfer_a
 			held_slot.ammo -= transfer_a
 			if held_slot.ammo <= 0:
@@ -612,10 +949,10 @@ func _place_or_swap_held_into_slot(target_slot: InventorySlotData) -> void:
 
 	# Mesmo item e agrupável
 	if target_slot.item == held_slot.item and held_slot.item.can_stack:
-		var max_s := held_slot.item.get_effective_max_stack()
-		var space := max_s - target_slot.quantity
+		var max_s: int = held_slot.item.get_effective_max_stack()
+		var space: int = max_s - target_slot.quantity
 		if space > 0:
-			var to_transfer := mini(space, held_slot.quantity)
+			var to_transfer: int = mini(space, held_slot.quantity)
 			target_slot.quantity += to_transfer
 			held_slot.quantity -= to_transfer
 			if held_slot.quantity <= 0:
@@ -643,7 +980,7 @@ func _handle_right_click(target_slot: InventorySlotData, slot_index: int, contai
 			if target_slot.quantity <= 0:
 				target_slot.clear()
 		elif held_slot.item == target_slot.item and held_slot.item.can_stack:
-			var max_s := held_slot.item.get_effective_max_stack()
+			var max_s: int = held_slot.item.get_effective_max_stack()
 			if held_slot.quantity < max_s:
 				held_slot.quantity += 1
 				target_slot.quantity -= 1
@@ -692,11 +1029,11 @@ func _transfer_slot_to_array(source_slot: InventorySlotData, destination_array: 
 
 	# 1º passo: se o item pode agrupar (can_stack), tenta completar pilhas existentes do mesmo item em ordem
 	if source_slot.item.can_stack:
-		var max_s := source_slot.item.get_effective_max_stack()
+		var max_s: int = source_slot.item.get_effective_max_stack()
 		for dest_slot in destination_array:
 			if not dest_slot.is_empty() and dest_slot.item == source_slot.item and dest_slot.quantity < max_s:
-				var space := max_s - dest_slot.quantity
-				var to_move := mini(space, source_slot.quantity)
+				var space: int = max_s - dest_slot.quantity
+				var to_move: int = mini(space, source_slot.quantity)
 				dest_slot.quantity += to_move
 				source_slot.quantity -= to_move
 				if source_slot.quantity <= 0:
@@ -706,8 +1043,8 @@ func _transfer_slot_to_array(source_slot: InventorySlotData, destination_array: 
 	# 2º passo: procura o primeiro slot totalmente livre em ordem
 	for dest_slot in destination_array:
 		if dest_slot.is_empty():
-			var max_s := source_slot.item.get_effective_max_stack()
-			var to_move := mini(max_s, source_slot.quantity)
+			var max_s: int = source_slot.item.get_effective_max_stack()
+			var to_move: int = mini(max_s, source_slot.quantity)
 			dest_slot.set_data(source_slot.item, to_move, source_slot.ammo)
 			source_slot.quantity -= to_move
 			if source_slot.quantity <= 0:

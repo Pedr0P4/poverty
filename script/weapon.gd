@@ -329,6 +329,7 @@ func try_fire_shot(camera: Camera3D, player: Player) -> bool:
 		_current_spread_deg + get_spread_increase_per_shot(),
 		get_max_spread_deg()
 	)
+	Enemy.notify_gunshot(get_tree(), player.global_position)
 	_on_shot_fired(camera, player)
 	return true
 

@@ -1,0 +1,425 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://script/main_menu.gd" id="1_menu_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_play"]
+bg_color = Color(0.85, 0.22, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.45, 0.35, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_play_hover"]
+bg_color = Color(0.95, 0.30, 0.25, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.45, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_menu"]
+bg_color = Color(0.14, 0.16, 0.20, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.38, 0.45, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_menu_hover"]
+bg_color = Color(0.22, 0.26, 0.34, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.72, 0.25, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel_card"]
+bg_color = Color(0.09, 0.10, 0.13, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.32, 0.38, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_controls_modal"]
+bg_color = Color(0.08, 0.09, 0.12, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.75, 0.65, 0.25, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 16
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.07, 0.09, 1)
+
+[node name="Vignette" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.03, 0.45)
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 64
+theme_override_constants/margin_top = 54
+theme_override_constants/margin_right = 64
+theme_override_constants/margin_bottom = 54
+
+[node name="MainVBox" type="VBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="TitleBox" type="VBoxContainer" parent="ContentMargin/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="ContentMargin/MainVBox/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.96, 0.98, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 58
+text = "POVERTY"
+
+[node name="SubtitleLabel" type="Label" parent="ContentMargin/MainVBox/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.76, 0.28, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 15
+text = "SOBREVIVÊNCIA PROCEDURAL"
+
+[node name="ButtonContainer" type="VBoxContainer" parent="ContentMargin/MainVBox"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 12
+
+[node name="BtnPlay" type="Button" parent="ContentMargin/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(280, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_play")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_play_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_play_hover")
+text = "▶   INICIAR PARTIDA"
+
+[node name="BtnControls" type="Button" parent="ContentMargin/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.92, 0.96, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_menu")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_menu_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_menu_hover")
+text = "⌨   CONTROLES"
+
+[node name="BtnQuit" type="Button" parent="ContentMargin/MainVBox/ButtonContainer"]
+custom_minimum_size = Vector2(280, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_menu")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_menu_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_menu_hover")
+text = "✕   SAIR DO JOGO"
+
+[node name="RecordsPanel" type="PanelContainer" parent="ContentMargin/MainVBox"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel_card")
+
+[node name="MarginContainer" type="MarginContainer" parent="ContentMargin/MainVBox/RecordsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ContentMargin/MainVBox/RecordsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RecordsHeader" type="Label" parent="ContentMargin/MainVBox/RecordsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.84, 0.32, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "🏆 SEUS RECORDES"
+
+[node name="HSeparator" type="HSeparator" parent="ContentMargin/MainVBox/RecordsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BestTimeValue" type="Label" parent="ContentMargin/MainVBox/RecordsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 14
+text = "Melhor Tempo: 00:00"
+
+[node name="BestKillsValue" type="Label" parent="ContentMargin/MainVBox/RecordsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 14
+text = "Inimigos Eliminados: 0"
+
+[node name="TotalGamesValue" type="Label" parent="ContentMargin/MainVBox/RecordsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.68, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "Partidas Jogadas: 0"
+
+[node name="ControlsModal" type="Control" parent="."]
+visible = false
+z_index = 200
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Backdrop" type="ColorRect" parent="ControlsModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.04, 0.05, 0.85)
+
+[node name="CenterContainer" type="CenterContainer" parent="ControlsModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ControlsPanel" type="PanelContainer" parent="ControlsModal/CenterContainer"]
+custom_minimum_size = Vector2(520, 440)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_controls_modal")
+
+[node name="MarginContainer" type="MarginContainer" parent="ControlsModal/CenterContainer/ControlsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 26
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 26
+theme_override_constants/margin_bottom = 22
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.85, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 20
+text = "⌨  CONTROLES DO JOGO"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Grid" type="GridContainer" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 7
+columns = 2
+
+[node name="A1" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Mover:"
+
+[node name="K1" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "W, A, S, D"
+
+[node name="A2" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Correr (gasta estamina):"
+
+[node name="K2" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Shift"
+
+[node name="A3" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Agachar Furtivo (sem som):"
+
+[node name="K3" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Ctrl ou C"
+
+[node name="A4" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Pular:"
+
+[node name="K4" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Espaço"
+
+[node name="A5" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Atirar / Usar Kit Médico:"
+
+[node name="K5" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Botão Esquerdo do Mouse"
+
+[node name="A6" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Mirar / Peculiaridade:"
+
+[node name="K6" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Botão Direito do Mouse"
+
+[node name="A7" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Recarregar Arma:"
+
+[node name="K7" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "R"
+
+[node name="A8" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Interagir (Baús / Munição):"
+
+[node name="K8" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "E"
+
+[node name="A9" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Inventário:"
+
+[node name="K9" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Tab / I"
+
+[node name="A10" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.75, 0.82, 1)
+theme_override_font_sizes/font_size = 13
+text = "Trocar Item / Hotbar:"
+
+[node name="K10" type="Label" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer/Grid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "1 a 6 ou Roda do Mouse"
+
+[node name="HSeparator2" type="HSeparator" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="BtnCloseControls" type="Button" parent="ControlsModal/CenterContainer/ControlsPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_menu")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_menu_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_menu_hover")
+text = "VOLTAR"

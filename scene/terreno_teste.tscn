@@ -38,4 +38,4 @@ shadow_enabled = true
 script = ExtResource("1_terreno")
 
 [node name="Player" parent="." unique_id=516778338 instance=ExtResource("2_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.5930605, 10, -3.3639145)
